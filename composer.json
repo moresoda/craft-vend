@@ -1,0 +1,43 @@
+{
+  "name": "angellco/vend",
+  "description": "Connect your Craft Commerce store to Vend POS.",
+  "type": "craft-plugin",
+  "keywords": [
+    "craft",
+    "cms",
+    "craftcms",
+    "craft-plugin",
+    "vend"
+  ],
+  "support": {
+    "docs": "https://github.com/angell-co/vend/blob/master/README.md",
+    "issues": "https://github.com/angell-co/vend/issues"
+  },
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Angell & Co",
+      "homepage": "https://angell.io"
+    }
+  ],
+  "require": {
+    "craftcms/cms": "^3.3.9",
+    "craftcms/commerce": "^2.1.13"
+  },
+  "autoload": {
+    "psr-4": {
+      "angellco\\vend\\": "src/"
+    }
+  },
+  "extra": {
+    "name": "Vend",
+    "handle": "vend",
+    "hasCpSettings": false,
+    "hasCpSection": true,
+    "changelogUrl": "https://raw.githubusercontent.com/angell-co/vend/master/CHANGELOG.md",
+    "components": {
+
+    },
+    "class": "angellco\\vend\\Vend"
+  }
+}
