@@ -22,7 +22,7 @@
   ],
   "require": {
     "craftcms/cms": "^3.3.9",
-    "craftcms/commerce": "^2.1.13"
+    "craftcms/commerce": "^3.0.0-alpha.1"
   },
   "autoload": {
     "psr-4": {
