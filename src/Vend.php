@@ -16,7 +16,7 @@ use craft\base\Plugin;
 /**
  * @author    Angell & Co
  * @package   Vend
- * @since     1.0.0
+ * @since     2.0.0
  */
 class Vend extends Plugin
 {
@@ -39,7 +39,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.0';
+    public $schemaVersion = '2.0.0';
 
     // Public Methods
     // =========================================================================
@@ -59,6 +59,30 @@ class Vend extends Plugin
     {
         parent::init();
         self::$plugin = $this;
+
+
+//        // Add our key resources
+//        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
+//        {
+//
+//            craft()->templates->includeCssResource('vend/css/vend.css');
+//
+//            if ((craft()->request->getSegment(1) == 'commerce' && craft()->request->getSegment(2) == 'products') || craft()->request->getSegment(1) == 'vend')
+//            {
+//                craft()->templates->includeJsResource('vend/js/vend.js');
+//                craft()->templates->includeJs("new Vend.Sync()");
+//            }
+//
+//        }
+//
+//        // Bind to the order complete event so we can register the sale with Vend
+//        // but only if the settings allow us to ;)
+//        if ($this->getSettings()->commerce_registerSales) {
+//            craft()->on('commerce_orders.onOrderComplete', function(Event $event)
+//            {
+//                craft()->vend->registerSale($event->params['order']);
+//            });
+//        }
 
         // Log on load for debugging
         Craft::info(
