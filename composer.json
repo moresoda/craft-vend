@@ -21,6 +21,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1.0",
     "craftcms/cms": "^3.3.15",
     "craftcms/commerce": "^2.2.8",
     "venveo/craft-oauthclient": "^2.1"

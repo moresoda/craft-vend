@@ -10,6 +10,7 @@
 
 namespace angellco\vend;
 
+use angellco\vend\models\Settings;
 use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
@@ -61,34 +62,13 @@ class Vend extends Plugin
      * you do not need to load it in your init() method.
      *
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         self::$plugin = $this;
 
-
-        Event::on(
-            Providers::class,
-            Providers::EVENT_REGISTER_PROVIDER_TYPES,
-            static function (RegisterComponentTypesEvent $event) {
-                $event->types[] = VendProvider::class;
-            }
-        );
-
-
-        // TODO: Save the domain prefix onto the User so we always have access to it
-        Event::on(
-            Tokens::class,
-            Tokens::EVENT_BEFORE_TOKEN_SAVED,
-            static function (TokenEvent $e) {
-                $domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
-
-                // Save onto user
-
-                // Then, in provider send it to constructor somehow
-                Craft::dd($domainPrefix);
-            }
-        );
+        // Install our event listeners
+        $this->installEventListeners();
 
 //        $plugin = \venveo\oauthclient\Plugin::$plugin;
 //// Let's grab a valid token - we could pass the current user ID in here to limit it
@@ -103,7 +83,7 @@ class Vend extends Plugin
 //        $url = $provider->getApiUrl('users');
 //        $request = $provider->getAuthenticatedRequest('GET', $url, $tokens[0]);
 //
-//        Craft::dd($app->getProviderInstance()->getConfiguredProvider()->getParsedResponse($request));
+//        $app->getProviderInstance()->getConfiguredProvider()->getParsedResponse($request);
 
 
 
@@ -143,6 +123,46 @@ class Vend extends Plugin
             ),
             __METHOD__
         );
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Install our event listeners.
+     */
+    protected function installEventListeners(): void
+    {
+        // Registers our provider with the Venveo OAuth plugin
+        Event::on(
+            Providers::class,
+            Providers::EVENT_REGISTER_PROVIDER_TYPES,
+            static function (RegisterComponentTypesEvent $event) {
+                $event->types[] = VendProvider::class;
+            }
+        );
+
+        // Save the domain prefix into the plugin settings
+        Event::on(
+            Tokens::class,
+            Tokens::EVENT_BEFORE_TOKEN_SAVED,
+            static function (TokenEvent $e) {
+                $domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
+                Craft::$app->getPlugins()->savePluginSettings(self::$plugin, [
+                    'domainPrefix' => $domainPrefix
+                ]);
+            }
+        );
+    }
+
+    /**
+     * Creates and returns the model used to store the plugin’s settings.
+     *
+     * @return Settings|null
+     */
+    protected function createSettingsModel(): ?Settings
+    {
+        return new Settings();
     }
 
 }

@@ -33,11 +33,6 @@ class Settings extends Model
      */
     public $domainPrefix;
 
-    /**
-     * @var int
-     */
-    public $tokenId;
-
 
     // Commerce
     // =========================================================================

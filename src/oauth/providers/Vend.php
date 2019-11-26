@@ -11,6 +11,7 @@
 namespace angellco\vend\oauth\providers;
 
 use Craft;
+use angellco\vend\Vend as VendPlugin;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\ResourceOwnerInterface;
@@ -38,6 +39,16 @@ class Vend extends AbstractProvider {
     // Public Methods
     // =========================================================================
 
+    public function __construct(array $options = [], array $collaborators = [])
+    {
+        parent::__construct($options, $collaborators);
+
+        $pluginSettings = VendPlugin::$plugin->getSettings();
+        if ($pluginSettings && $pluginSettings->domainPrefix) {
+            $this->domainPrefix = $pluginSettings->domainPrefix;
+        }
+    }
+
     /**
      * Returns the base URL for authorizing a client.
      *
@@ -45,8 +56,9 @@ class Vend extends AbstractProvider {
      *
      * @return string
      */
-    public function getBaseAuthorizationUrl() {
-        return "https://secure.vendhq.com/connect";
+    public function getBaseAuthorizationUrl(): string
+    {
+        return 'https://secure.vendhq.com/connect';
     }
 
     /**
@@ -55,9 +67,12 @@ class Vend extends AbstractProvider {
      * Eg. https://oauth.service.com/token
      *
      * @param array $params
+     *
      * @return string
+     * @throws \yii\web\BadRequestHttpException
      */
-    public function getBaseAccessTokenUrl(array $params) {
+    public function getBaseAccessTokenUrl(array $params): string
+    {
         $this->domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
         return $this->getApiUrl('1.0/token');
     }
@@ -68,7 +83,8 @@ class Vend extends AbstractProvider {
      * @param AccessToken $token
      * @return string
      */
-    public function getResourceOwnerDetailsUrl(AccessToken $token) {
+    public function getResourceOwnerDetailsUrl(AccessToken $token): string
+    {
         throw new \RuntimeException('Vend does not allow access to the resource owner details.');
     }
 
@@ -88,7 +104,8 @@ class Vend extends AbstractProvider {
      *
      * @return array
      */
-    protected function getDefaultScopes() {
+    protected function getDefaultScopes(): array
+    {
         return ['authorization_code'];
     }
 
@@ -100,7 +117,8 @@ class Vend extends AbstractProvider {
      * @param  array|string $data Parsed response data
      * @return void
      */
-    protected function checkResponse(ResponseInterface $response, $data) {
+    protected function checkResponse(ResponseInterface $response, $data)
+    {
 //        error=access_denied
         var_dump($data);
     }
@@ -118,19 +136,6 @@ class Vend extends AbstractProvider {
         throw new \RuntimeException('Vend does not allow access to the resource owners.');
     }
 
-//    /**
-//     * @var string
-//     */
-//    public $domainPrefix;
-
-
-//    public function __construct($options = [])
-//    {
-////        if (empty($options['domainPrefix'])) {
-////            throw new \RuntimeException('Vend provider requires a "domainPrefix" option');
-////        }
-//        parent::__construct($options);
-//    }
 //
 //    /**
 //     * Get a Vend API URL, depending on path.
