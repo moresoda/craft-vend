@@ -74,7 +74,7 @@ class Vend extends AbstractProvider {
     public function getBaseAccessTokenUrl(array $params): string
     {
         $this->domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
-        return $this->getApiUrl('1.0/token');
+        return $this->getApiUrl('token', '1.0');
     }
 
     /**
@@ -88,9 +88,27 @@ class Vend extends AbstractProvider {
         throw new \RuntimeException('Vend does not allow access to the resource owner details.');
     }
 
-    public function getApiUrl($path)
+    /**
+     * Helper function to return a prefixed API url.
+     *
+     * @param        $path
+     * @param string $version
+     *
+     * @return string
+     */
+    public function getApiUrl($path, $version = '2.0'): string
     {
-        return "https://{$this->domainPrefix}.vendhq.com/api/{$path}";
+        return "https://{$this->domainPrefix}.vendhq.com/api/{$version}/{$path}";
+    }
+
+    /**
+     * Helper function to return the Vend store url.
+     *
+     * @return string
+     */
+    public function getStoreUrl(): string
+    {
+        return "https://{$this->domainPrefix}.vendhq.com";
     }
 
     // Protected Methods
@@ -119,8 +137,9 @@ class Vend extends AbstractProvider {
      */
     protected function checkResponse(ResponseInterface $response, $data)
     {
+        // TODO sort this out
 //        error=access_denied
-        var_dump($data);
+//        var_dump($data);
     }
 
 
