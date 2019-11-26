@@ -12,6 +12,12 @@ namespace angellco\vend;
 
 use Craft;
 use craft\base\Plugin;
+use craft\events\RegisterComponentTypesEvent;
+use venveo\oauthclient\events\TokenEvent;
+use venveo\oauthclient\services\Providers;
+use angellco\vend\oauth\providers\VendVenveo as VendProvider;
+use venveo\oauthclient\services\Tokens;
+use yii\base\Event;
 
 /**
  * @author    Angell & Co
@@ -59,6 +65,50 @@ class Vend extends Plugin
     {
         parent::init();
         self::$plugin = $this;
+
+
+        Event::on(
+            Providers::class,
+            Providers::EVENT_REGISTER_PROVIDER_TYPES,
+            static function (RegisterComponentTypesEvent $event) {
+                $event->types[] = VendProvider::class;
+            }
+        );
+
+
+        // TODO: Save the domain prefix onto the User so we always have access to it
+        Event::on(
+            Tokens::class,
+            Tokens::EVENT_BEFORE_TOKEN_SAVED,
+            static function (TokenEvent $e) {
+                $domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
+
+                // Save onto user
+
+                // Then, in provider send it to constructor somehow
+                Craft::dd($domainPrefix);
+            }
+        );
+
+//        $plugin = \venveo\oauthclient\Plugin::$plugin;
+//// Let's grab a valid token - we could pass the current user ID in here to limit it
+//        $tokens = $plugin->credentials->getValidTokensForAppAndUser('vend');
+//// Get the app from the apps service
+//        $app = $plugin->apps->getAppByHandle('vend');
+//
+//
+//
+//        /** @var \angellco\vend\oauth\providers\Vend $provider */
+//        $provider = $app->getProviderInstance()->getConfiguredProvider();
+//        $url = $provider->getApiUrl('users');
+//        $request = $provider->getAuthenticatedRequest('GET', $url, $tokens[0]);
+//
+//        Craft::dd($app->getProviderInstance()->getConfiguredProvider()->getParsedResponse($request));
+
+
+
+
+//        Craft::$app->plugins->isPluginInstalled('oauthclient');
 
 
 //        // Add our key resources
