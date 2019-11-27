@@ -10,7 +10,6 @@
 
 namespace angellco\vend\controllers;
 
-use angellco\vend\Vend;
 use craft\web\Controller;
 use yii\web\Response;
 

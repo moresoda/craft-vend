@@ -10,8 +10,8 @@
 
 namespace angellco\vend\controllers;
 
-use Craft;
 use angellco\vend\Vend;
+use Craft;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 

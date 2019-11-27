@@ -10,13 +10,21 @@
 
 namespace angellco\vend\controllers;
 
-use Craft;
+use angellco\vend\errors\ImportProfileNotFoundException;
 use angellco\vend\models\ImportProfile;
 use angellco\vend\Vend;
+use Craft;
+use craft\errors\MissingComponentException;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use yii\base\ErrorException;
+use yii\base\Exception;
+use yii\base\NotSupportedException;
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
+use yii\web\ServerErrorHttpException;
 
 /**
  * Import Profiles controller.
@@ -44,7 +52,7 @@ class ImportProfilesController extends Controller
      * Import profiles index page.
      *
      * @return Response
-     * @throws \yii\web\ForbiddenHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionIndex(): Response
     {
@@ -65,7 +73,7 @@ class ImportProfilesController extends Controller
      *
      * @return Response
      * @throws NotFoundHttpException
-     * @throws \yii\web\ForbiddenHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionEdit(int $profileId = null, ImportProfile $profile = null): Response
     {
@@ -117,11 +125,16 @@ class ImportProfilesController extends Controller
      * Saves a profile.
      *
      * @return Response|null
-     * @throws \craft\errors\MissingComponentException
-     * @throws \yii\web\BadRequestHttpException
-     * @throws \yii\web\ForbiddenHttpException
+     * @throws ImportProfileNotFoundException
+     * @throws MissingComponentException
+     * @throws ErrorException
+     * @throws Exception
+     * @throws NotSupportedException
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     * @throws ServerErrorHttpException
      */
-    public function actionSave()
+    public function actionSave(): ?Response
     {
         $this->requireAdmin();
         $this->requirePostRequest();
@@ -151,5 +164,25 @@ class ImportProfilesController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('vend', 'Import profile saved.'));
 
         return $this->redirectToPostedUrl($profile);
+    }
+
+    /**
+     * Deletes a profile.
+     *
+     * @return Response
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
+    public function actionDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+        $this->requireAdmin();
+
+        $profileId = Craft::$app->getRequest()->getRequiredBodyParam('id');
+
+        Vend::$plugin->importProfiles->deleteById($profileId);
+
+        return $this->asJson(['success' => true]);
     }
 }

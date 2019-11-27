@@ -20,6 +20,11 @@ use craft\events\ConfigEvent;
 use craft\helpers\Db;
 use craft\helpers\ProjectConfig;
 use craft\helpers\StringHelper;
+use Exception;
+use Throwable;
+use yii\base\ErrorException;
+use yii\base\NotSupportedException;
+use yii\web\ServerErrorHttpException;
 
 /**
  * Import Profiles service.
@@ -27,6 +32,10 @@ use craft\helpers\StringHelper;
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0
+ *
+ * @property array       $all
+ * @property int         $total
+ * @property array|int[] $allIds
  */
 class ImportProfiles extends Component
 {
@@ -150,12 +159,12 @@ class ImportProfiles extends Component
      * @param ImportProfile $profile
      *
      * @return bool
-     * @throws \Exception
+     * @throws Exception
      * @throws ImportProfileNotFoundException
-     * @throws \yii\base\ErrorException
+     * @throws ErrorException
      * @throws \yii\base\Exception
-     * @throws \yii\base\NotSupportedException
-     * @throws \yii\web\ServerErrorHttpException
+     * @throws NotSupportedException
+     * @throws ServerErrorHttpException
      */
     public function save(ImportProfile $profile): bool
     {
@@ -197,7 +206,7 @@ class ImportProfiles extends Component
      *
      * @param ConfigEvent $event
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function handleChangedProfile(ConfigEvent $event): void
     {
@@ -225,20 +234,59 @@ class ImportProfiles extends Component
             $record->save(false);
 
             $transaction->commit();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $transaction->rollBack();
             throw $e;
         }
     }
 
-    public function deleteById(int $profileId)
+    /**
+     * Delete’s a profile by its ID from the project config.
+     *
+     * @param int $profileId
+     *
+     * @return bool
+     */
+    public function deleteById(int $profileId): bool
     {
+        $profile = $this->getById($profileId);
 
+        if ($profile) {
+            Craft::$app->getProjectConfig()->remove(self::CONFIG_PROFILES_KEY.'.'.$profile->uid);
+        }
+
+        return true;
     }
 
-    public function delete(ImportProfile $profile)
+    /**
+     * Handles a deleted profile and removes it from the database
+     *
+     * @param ConfigEvent $event
+     *
+     * @throws Throwable
+     */
+    public function handleDeletedProfile(ConfigEvent $event): void
     {
+        $uid = $event->tokenMatches[0];
+        $record = $this->_getRecord($uid);
 
+        if (!$record->id) {
+            return;
+        }
+
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            // Delete the block type record
+            $db->createCommand()
+                ->delete('{{%vend_importprofiles}}', ['id' => $record->id])
+                ->execute();
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
     }
 
     // Private Methods
@@ -275,9 +323,9 @@ class ImportProfiles extends Component
             'name',
             'handle',
             'map',
+            'uid',
         ]));
 
         return $profile;
     }
-
 }
