@@ -12,6 +12,7 @@ namespace angellco\vend\services;
 
 use angellco\vend\oauth\providers\Vend as OauthProvider;
 use craft\base\Component;
+use League\OAuth2\Client\Tool\QueryBuilderTrait;
 use venveo\oauthclient\models\Token as OauthToken;
 use venveo\oauthclient\Plugin as OauthPlugin;
 
@@ -21,6 +22,8 @@ use venveo\oauthclient\Plugin as OauthPlugin;
  * @since     2.0.0
  */
 class Api extends Component {
+
+    use QueryBuilderTrait;
 
     public $oauthPlugin;
 
@@ -57,14 +60,21 @@ class Api extends Component {
     }
 
     /**
-     * @param $uri
+     * @param       $uri
+     * @param array $params
      *
      * @return mixed
      * @throws \League\OAuth2\Client\Provider\Exception\IdentityProviderException
      */
-    public function getResponse($uri)
+    public function getResponse($uri, $params = [])
     {
         $url = $this->oauthProvider->getApiUrl($uri);
+
+        if ($params) {
+            $query = $this->buildQueryString($params);
+            $url .= '?'.$query;
+        }
+
         $request = $this->oauthProvider->getAuthenticatedRequest('GET', $url, $this->oauthToken);
         return $this->oauthProvider->getParsedResponse($request);
     }
