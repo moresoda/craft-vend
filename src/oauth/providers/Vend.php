@@ -20,6 +20,8 @@ use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use Psr\Http\Message\ResponseInterface;
 
 /**
+ * Vend League Provider class.
+ *
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0

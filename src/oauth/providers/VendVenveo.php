@@ -14,6 +14,8 @@ use angellco\vend\oauth\providers\Vend;
 use venveo\oauthclient\base\Provider;
 
 /**
+ * Venveo OAuth plugin Provider class.
+ *
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0

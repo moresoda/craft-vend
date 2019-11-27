@@ -16,13 +16,14 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 
 /**
+ * Products controller.
+ *
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0
  */
 class ProductsController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
@@ -47,7 +48,7 @@ class ProductsController extends Controller
 
         // Set the page size
         $params = [
-            'page_size' => 5
+            'page_size' => 100
         ];
 
         // Set the after param which will be the max version number in the

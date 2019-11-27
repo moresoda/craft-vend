@@ -17,6 +17,8 @@ use venveo\oauthclient\models\Token as OauthToken;
 use venveo\oauthclient\Plugin as OauthPlugin;
 
 /**
+ * Api service.
+ *
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0
