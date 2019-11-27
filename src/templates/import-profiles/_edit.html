@@ -1,0 +1,47 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{% extends "_layouts/cp" %}
+
+{% set fullPageForm = true %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+
+    <input type="hidden" name="action" value="vend/import-profiles/save">
+    {{ redirectInput('vend/import-profiles') }}
+
+    {% if profile.id %}<input type="hidden" name="profileId" value="{{ profile.id }}">{% endif %}
+
+    {{ forms.textField({
+        first: true,
+        label: "Name"|t('app'),
+        instructions: "What this profile will be called in the CP."|t('vend'),
+        id: 'name',
+        name: 'name',
+        value: profile.name,
+        errors: profile.getErrors('name'),
+        autofocus: true,
+        required: true,
+    }) }}
+
+    {{ forms.textField({
+        label: "Handle"|t('app'),
+        instructions: "How you’ll refer to this profile in the import URLs."|t('vend'),
+        id: 'handle',
+        name: 'handle',
+        class: 'code',
+        autocorrect: false,
+        autocapitalize: false,
+        value: profile.handle,
+        errors: profile.getErrors('handle'),
+        required: true
+    }) }}
+
+{% endblock %}
+
+
+{% js %}
+    {% if profile is not defined or not profile.handle %}
+        new Craft.HandleGenerator('#name', '#handle');
+    {% endif %}
+{% endjs %}

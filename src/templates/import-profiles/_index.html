@@ -27,22 +27,22 @@
 
 {% block content %}
     <div class="field">
-        <p id="noimportprofiles"{% if importProfiles %} class="hidden"{% endif %}>
+        <p id="no-profiles"{% if profiles %} class="hidden"{% endif %}>
             {{ "No import profiles exist yet."|t('vend') }}
         </p>
 
-        {% if importProfiles %}
-            <table id="importprofiles" class="data fullwidth collapsible">
+        {% if profiles %}
+            <table id="profiles" class="data fullwidth collapsible">
                 <thead>
                     <th scope="col">{{ "Name"|t('app') }}</th>
                     <th scope="col">{{ "Handle"|t('handle') }}</th>
                     <td class="thin"></td>
                 </thead>
                 <tbody>
-                {% for importProfile in importProfiles %}
-                    <tr data-id="{{ importProfile.id }}" data-name="{{ importProfile.name }}"  data-handle="{{ importProfile.handle }}">
-                        <th scope="row" data-title="{{ 'Name'|t('app') }}"><a href="{{ url('vend/import-profiles/' ~ importProfile.id) }}">{{ importProfile.name|t('site') }}</a></th>
-                        <td class="code" data-title="{{ 'Handle'|t('app') }}">{{ importProfile.handle }}</td>
+                {% for profile in profiles %}
+                    <tr data-id="{{ profile.id }}" data-name="{{ profile.name }}"  data-handle="{{ profile.handle }}">
+                        <th scope="row" data-title="{{ 'Name'|t('app') }}"><a href="{{ url('vend/import-profiles/' ~ profile.id) }}">{{ profile.name|t('site') }}</a></th>
+                        <td class="code" data-title="{{ 'Handle'|t('app') }}">{{ profile.handle }}</td>
                         <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}"></a></td>
                     </tr>
                 {% endfor %}
@@ -54,8 +54,8 @@
 
 {% js %}
     var adminTable = new Craft.AdminTable({
-        tableSelector: '#importprofiles',
-        noItemsSelector: '#noimportprofiles',
+        tableSelector: '#profiles',
+        noItemsSelector: '#no-profiles',
         deleteAction: 'vend/import-profiles/delete',
         confirmDeleteMessage: '{{ "Are you sure you want to delete “{name}”?"|t('vend') }}',
     });

@@ -46,7 +46,10 @@ class Install extends Migration
     public function safeUp()
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
-        $this->createTables();
+        if ($this->createTables()) {
+            $this->createIndexes();
+//
+        }
         return true;
     }
 
@@ -98,6 +101,18 @@ class Install extends Migration
         }
 
         return $tablesCreated;
+    }
+
+    /**
+     * Creates the indexes needed for the Records used by the plugin
+     *
+     * @return void
+     */
+    protected function createIndexes()
+    {
+        // vend_importprofiles table
+        $this->createIndex(null, '{{%vend_importprofiles}}', 'name', true);
+        $this->createIndex(null, '{{%vend_importprofiles}}', 'handle', true);
     }
 
     /**
