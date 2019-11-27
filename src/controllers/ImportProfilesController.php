@@ -81,6 +81,68 @@ class ImportProfilesController extends Controller
 
         $variables = [];
 
+        $vendApi = Vend::$plugin->api;
+
+        // Vend objects
+        // ---------------------------------------------------------------------
+
+        // Product types
+        $vendProductTypes = $vendApi->getResponse('2.0/product_types');
+        $variables['vendProductTypes'] = [
+            [
+                'label' => '',
+                'value' => ''
+            ]
+        ];
+        if (isset($vendProductTypes['data']))
+        {
+            foreach ($vendProductTypes['data'] as $vendProductType)
+            {
+                $variables['vendProductTypes'][] = [
+                    'label' => $vendProductType['name'],
+                    'value' => $vendProductType['id']
+                ];
+            }
+        }
+
+        // Brand
+        $vendBrands = $vendApi->getResponse('2.0/brands');
+        $variables['vendBrands'] = [
+            [
+                'label' => '',
+                'value' => ''
+            ]
+        ];
+        if (isset($vendBrands['data']))
+        {
+            foreach ($vendBrands['data'] as $vendBrand)
+            {
+                $variables['vendBrands'][] = [
+                    'label' => $vendBrand['name'],
+                    'value' => $vendBrand['id']
+                ];
+            }
+        }
+
+        // Supplier
+        $vendSuppliers = $vendApi->getResponse('2.0/suppliers');
+        $variables['vendSuppliers'] = [
+            [
+                'label' => '',
+                'value' => ''
+            ]
+        ];
+        if (isset($vendSuppliers['data']))
+        {
+            foreach ($vendSuppliers['data'] as $vendSupplier)
+            {
+                $variables['vendSuppliers'][] = [
+                    'label' => $vendSupplier['name'],
+                    'value' => $vendSupplier['id']
+                ];
+            }
+        }
+
         // Breadcrumbs
         $variables[ 'crumbs' ] = [
             [
