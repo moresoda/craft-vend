@@ -58,7 +58,7 @@ class ProductsController extends Controller
         }
 
         // Fetch the products
-        $response = $vendApi->getResponse('products', $params);
+        $response = $vendApi->getResponse('2.0/products', $params);
 
         // Make our response array
         $return = [

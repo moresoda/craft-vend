@@ -158,7 +158,7 @@ class Vend extends Plugin
                 $variables['oauthProvider'] = $vendApi->oauthProvider;
 
                 // Users
-                $vendUsers = $vendApi->getResponse('users');
+                $vendUsers = $vendApi->getResponse('2.0/users');
                 $variables['vendUsers'] = [
                     [
                         'label' => '',
@@ -177,7 +177,7 @@ class Vend extends Plugin
                 }
 
                 // Outlets
-                $vendOutlets = $vendApi->getResponse('outlets');
+                $vendOutlets = $vendApi->getResponse('2.0/outlets');
                 $variables['vendOutlets'] = [
                     [
                         'label' => '',
@@ -196,7 +196,7 @@ class Vend extends Plugin
                 }
 
                 // Registers
-                $vendRegisters = $vendApi->getResponse('registers');
+                $vendRegisters = $vendApi->getResponse('2.0/registers');
                 $variables['vendRegisters'] = [
                     [
                         'label' => '',
@@ -215,7 +215,7 @@ class Vend extends Plugin
                 }
 
                 // Payment types
-                $vendPaymentTypes = $vendApi->getResponse('payment_types');
+                $vendPaymentTypes = $vendApi->getResponse('2.0/payment_types');
                 $variables['vendPaymentTypes'] = [
                     [
                         'label' => '',

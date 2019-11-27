@@ -40,8 +40,10 @@ class Api extends Component {
     {
         parent::__construct($config);
 
+        // Cache the OAuth Plugin
         $this->oauthPlugin = OauthPlugin::$plugin;
 
+        // Try and get a valid token and cache the results
         try {
             $tokens = $this->oauthPlugin->credentials->getValidTokensForAppAndUser('vend');
 
@@ -58,7 +60,7 @@ class Api extends Component {
     }
 
     /**
-     * TODO
+     * Gets and authenticated response and returns the parsed result.
      *
      * @param       $uri
      * @param array $params
@@ -74,14 +76,15 @@ class Api extends Component {
     }
 
     /**
-     * TODO
+     * Returns a prepared URL for the API for a given URI and optional
+     * query parameters
      *
      * @param       $uri
      * @param array $params
      *
      * @return string
      */
-    public function getPreparedUrl($uri, $params = [])
+    public function getPreparedUrl($uri, $params = []): string
     {
         $url = $this->oauthProvider->getApiUrl($uri);
 

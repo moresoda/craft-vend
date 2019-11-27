@@ -74,7 +74,7 @@ class Vend extends AbstractProvider {
     public function getBaseAccessTokenUrl(array $params): string
     {
         $this->domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
-        return $this->getApiUrl('token', '1.0');
+        return $this->getApiUrl('1.0/token');
     }
 
     /**
@@ -92,13 +92,12 @@ class Vend extends AbstractProvider {
      * Helper function to return a prefixed API url.
      *
      * @param        $path
-     * @param string $version
      *
      * @return string
      */
-    public function getApiUrl($path, $version = '2.0'): string
+    public function getApiUrl($path): string
     {
-        return "https://{$this->domainPrefix}.vendhq.com/api/{$version}/{$path}";
+        return "https://{$this->domainPrefix}.vendhq.com/api/{$path}";
     }
 
     /**
