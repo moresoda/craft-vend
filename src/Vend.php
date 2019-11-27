@@ -13,13 +13,16 @@ namespace angellco\vend;
 use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterUrlRulesEvent;
 use craft\web\Controller;
+use craft\web\UrlManager;
 use venveo\oauthclient\events\TokenEvent;
 use venveo\oauthclient\services\Providers;
 use venveo\oauthclient\services\Tokens;
 use angellco\vend\models\Settings;
 use angellco\vend\oauth\providers\VendVenveo as VendProvider;
 use angellco\vend\services\Api as VendApi;
+use angellco\vend\services\ImportProfiles;
 use yii\base\Event;
 
 /**
@@ -28,6 +31,7 @@ use yii\base\Event;
  * @since     2.0.0
  *
  * @property VendApi $api
+ * @property ImportProfiles $importProfiles
  * @property \yii\web\Response|mixed $settingsResponse
  */
 class Vend extends Plugin
@@ -74,27 +78,6 @@ class Vend extends Plugin
 
         // Install our event listeners
         $this->installEventListeners();
-
-//        $plugin = \venveo\oauthclient\Plugin::$plugin;
-//// Let's grab a valid token - we could pass the current user ID in here to limit it
-//        $tokens = $plugin->credentials->getValidTokensForAppAndUser('vend');
-//// Get the app from the apps service
-//        $app = $plugin->apps->getAppByHandle('vend');
-//
-//
-//
-//        /** @var \angellco\vend\oauth\providers\Vend $provider */
-//        $provider = $app->getProviderInstance()->getConfiguredProvider();
-//        $url = $provider->getApiUrl('users');
-//        $request = $provider->getAuthenticatedRequest('GET', $url, $tokens[0]);
-//
-//        $app->getProviderInstance()->getConfiguredProvider()->getParsedResponse($request);
-
-
-
-
-//        Craft::$app->plugins->isPluginInstalled('oauthclient');
-
 
 //        // Add our key resources
 //        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
@@ -258,6 +241,35 @@ class Vend extends Plugin
         ]);
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getCpNavItem(): array
+    {
+        $ret = parent::getCpNavItem();
+
+        $ret['label'] = Craft::t('vend', 'Vend');
+
+        $ret['subnav']['parked-sales'] = [
+            'label' => Craft::t('vend', 'Parked Sales'),
+            'url' => 'vend/parked-sales'
+        ];
+
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $ret['subnav']['import-profiles'] = [
+                'label' => Craft::t('vend', 'Import Profiles'),
+                'url' => 'vend/import-profiles'
+            ];
+
+            $ret['subnav']['settings'] = [
+                'label' => Craft::t('app', 'Settings'),
+                'url' => 'vend/settings'
+            ];
+        }
+
+        return $ret;
+    }
+
     // Protected Methods
     // =========================================================================
 
@@ -266,6 +278,19 @@ class Vend extends Plugin
      */
     protected function installEventListeners(): void
     {
+        // Register our CP routes
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            static function(RegisterUrlRulesEvent $event) {
+                $event->rules['vend/parked-sales'] = 'vend/parked-sales/index';
+
+                $event->rules['vend/import-profiles'] = 'vend/import-profiles/index';
+                $event->rules['vend/import-profiles/new'] = 'vend/import-profiles/edit';
+                $event->rules['vend/import-profiles/<profileId:\d+>'] = 'vend/import-profiles/edit';
+            }
+        );
+
         // Registers our provider with the Venveo OAuth plugin
         Event::on(
             Providers::class,
@@ -297,10 +322,5 @@ class Vend extends Plugin
     {
         return new Settings();
     }
-
-
-
-
-//{% set oauthTokens = craft.oauth.credentials.getValidTokensForAppAndUser('vend') %}
 
 }

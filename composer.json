@@ -39,7 +39,8 @@
     "hasCpSection": true,
     "changelogUrl": "https://raw.githubusercontent.com/angell-co/vend/master/CHANGELOG.md",
     "components": {
-      "api": "angellco\\vend\\services\\Api"
+      "api": "angellco\\vend\\services\\Api",
+      "importProfiles": "angellco\\vend\\services\\ImportProfiles"
     },
     "class": "angellco\\vend\\Vend"
   }

@@ -15,13 +15,13 @@ use craft\web\Controller;
 use yii\web\Response;
 
 /**
- * Import Profiles controller.
+ * Parked Sales controller.
  *
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0
  */
-class ImportProfilesController extends Controller
+class ParkedSalesController extends Controller
 {
     // Protected Properties
     // =========================================================================
@@ -46,10 +46,11 @@ class ImportProfilesController extends Controller
     {
         $this->requireAdmin();
 
-        $importProfiles = Vend::$plugin->importProfiles->getAll();
+//        $parkedSales = Vend::$plugin->parkedSales->getAll();
+        $parkedSales = [];
 
-        return $this->renderTemplate('vend/import-profiles/_index', [
-            'importProfiles' => $importProfiles
+        return $this->renderTemplate('vend/parked-sales/_index', [
+            'parkedSales' => $parkedSales
         ]);
     }
 }

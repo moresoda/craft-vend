@@ -1,0 +1,62 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Vend plugin for Craft Commerce
+ *
+ * Connect your Craft Commerce store to Vend POS.
+ *
+ * @author    Angell & Co
+ * @copyright Copyright (c) 2019 Angell & Co
+ * @link      https://angell.io
+ * @package   Vend
+ * @since     2.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+{% set title = "Import Profiles"|t('vend') %}
+{% set selectedSubnavItem = 'import-profiles' %}
+
+{% block actionButton %}
+    <a href="{{ url('vend/import-profiles/new') }}" class="btn submit add icon">{{ "New Import Profile"|t('vend') }}</a>
+{% endblock %}
+
+{% set crumbs = [
+    { label: "Vend"|t('vend'), url: url('vend') }
+] %}
+
+{% block content %}
+    <div class="field">
+        <p id="noimportprofiles"{% if importProfiles %} class="hidden"{% endif %}>
+            {{ "No import profiles exist yet."|t('vend') }}
+        </p>
+
+        {% if importProfiles %}
+            <table id="importprofiles" class="data fullwidth collapsible">
+                <thead>
+                    <th scope="col">{{ "Name"|t('app') }}</th>
+                    <th scope="col">{{ "Handle"|t('handle') }}</th>
+                    <td class="thin"></td>
+                </thead>
+                <tbody>
+                {% for importProfile in importProfiles %}
+                    <tr data-id="{{ importProfile.id }}" data-name="{{ importProfile.name }}"  data-handle="{{ importProfile.handle }}">
+                        <th scope="row" data-title="{{ 'Name'|t('app') }}"><a href="{{ url('vend/import-profiles/' ~ importProfile.id) }}">{{ importProfile.name|t('site') }}</a></th>
+                        <td class="code" data-title="{{ 'Handle'|t('app') }}">{{ importProfile.handle }}</td>
+                        <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}"></a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% js %}
+    var adminTable = new Craft.AdminTable({
+        tableSelector: '#importprofiles',
+        noItemsSelector: '#noimportprofiles',
+        deleteAction: 'vend/import-profiles/delete',
+        confirmDeleteMessage: '{{ "Are you sure you want to delete “{name}”?"|t('vend') }}',
+    });
+{% endjs %}

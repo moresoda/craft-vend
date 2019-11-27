@@ -1,0 +1,72 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Vend plugin for Craft Commerce
+ *
+ * Connect your Craft Commerce store to Vend POS.
+ *
+ * @author    Angell & Co
+ * @copyright Copyright (c) 2019 Angell & Co
+ * @link      https://angell.io
+ * @package   Vend
+ * @since     2.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+{% set title = "Parked Sales"|t('vend') %}
+{% set selectedSubnavItem = 'parked-sales' %}
+
+{% set crumbs = [
+    { label: "Vend"|t('vend'), url: url('vend') }
+] %}
+
+{% set content %}
+    <div id="no-parked-sales"{% if parkedSales %} class="hidden"{% endif %}>
+        <p>{{ "There are currently no parked sales."|t }}</p>
+    </div>
+
+    {% if parkedSales|length %}
+        <table id="parked-sales" class="data fullwidth collapsible">
+            <thead>
+                <th scope="col">{{ "ID"|t('app') }}</th>
+                <th scope="col">{{ "Order"|t('commerce') }}</th>
+                <th scope="col">{{ "Email"|t('app') }}</th>
+                <th scope="col">{{ "Total"|t('app') }}</th>
+                <th scope="col">{{ "Date"|t('app') }}</th>
+                <td class="thin" colspan="2"></td>
+            </thead>
+            <tbody>
+            {% for parkedSale in parkedSales %}
+                <tr data-id="{{ parkedSale.id }}" data-name="{{ parkedSale.order.shortNumber }}">
+                    <th scope="row" data-title="{{ 'ID'|t }}">{{ parkedSale.id }}</th>
+                    <td data-title="{{ 'Order'|t }}"><a href="{{ parkedSale.order.cpEditUrl }}">{{ parkedSale.order.shortNumber }}</a></td>
+                    <td data-title="{{ 'Email'|t }}">{{ parkedSale.order.email }}</td>
+                    <td data-title="{{ 'Total'|t }}">{{ parkedSale.order.totalPrice|currency(parkedSale.order.currency) }}</td>
+                    <td data-title="{{ 'Date'|t }}"><span title="{{ parkedSale.order.dateOrdered.localeDate() }} {{ parkedSale.order.dateOrdered.localeTime() }}">{{ parkedSale.order.dateOrdered.uiTimestamp() }}</span></td>
+                    <td class="thin">
+                        <form action="{{ actionUrl('vend/register-sales/send') }}" method="post">
+                            {{ getCsrfInput() }}
+                            <a class="formsubmit btn small submit" data-action="vend/register-sales/send" data-param="id" data-value="{{ parkedSale.order.id }}" data-redirect="{{ url('vend') }}">{{ 'Register Sale'|t('vend') }}</a>
+                        </form>
+                    </td>
+                    <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}" role="button"></a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endset %}
+
+
+{% set js %}
+    var adminTable = new Craft.AdminTable({
+        tableSelector: '#parked-sales',
+        noObjectsSelector: '#no-parked-sales',
+        deleteAction: 'vend/parked-sales/delete',
+        confirmDeleteMessage: '{{ "Are you sure you want to delete the parked sale for order “{name}”?"|t('vend') }}',
+        deleteSuccessMessage: '{{ "Parked sale deleted for order “{name}”."|t('vend') }}',
+        deleteFailMessage:    '{{ "Couldn’t delete parked sale for order “{name}”."|t('vend') }}',
+    });
+{% endset %}
+{% includeJs js %}
