@@ -89,25 +89,25 @@ class Vend extends AbstractProvider {
     }
 
     /**
-     * Helper function to return a prefixed API url.
-     *
-     * @param        $path
+     * Returns the base URL for this Vend store.
      *
      * @return string
      */
-    public function getApiUrl($path): string
+    public function getBaseUrl(): string
     {
-        return "https://{$this->domainPrefix}.vendhq.com/api/{$path}";
+        return "https://{$this->domainPrefix}.vendhq.com";
     }
 
     /**
-     * Helper function to return the Vend store url.
+     * Returns an API URL for a given URI path.
+     *
+     * @param $uri
      *
      * @return string
      */
-    public function getStoreUrl(): string
+    public function getApiUrl($uri): string
     {
-        return "https://{$this->domainPrefix}.vendhq.com";
+        return "{$this->getBaseUrl()}/api/{$uri}";
     }
 
     // Protected Methods

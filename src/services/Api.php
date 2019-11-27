@@ -21,13 +21,28 @@ use venveo\oauthclient\Plugin as OauthPlugin;
  * @package   Vend
  * @since     2.0.0
  */
-class Api extends Component {
+class Api extends Component
+{
+    // Public Properties
+    // =========================================================================
 
+    /**
+     * @var OauthPlugin
+     */
     public $oauthPlugin;
 
+    /**
+     * @var mixed|OauthToken
+     */
     public $oauthToken;
 
+    /**
+     * @var OauthProvider
+     */
     public $oauthProvider;
+
+    // Public Methods
+    // =========================================================================
 
     /**
      * Api constructor.

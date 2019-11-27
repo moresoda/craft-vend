@@ -6,7 +6,7 @@
     <p>You are not connected to Vend, <a href="{{ url('oauthclient/apps') }}">please connect to your Vend store</a> first.</p>
 {% else %}
     {% if oauthToken and oauthProvider %}
-        <p>Connected to the Vend Store <a href="{{ oauthProvider.getStoreUrl() }}" target="_blank" class="go"><code>{{ oauthProvider.domainPrefix }}</code></a></p>
+        <p>Connected to the Vend Store <a href="{{ oauthProvider.getBaseUrl() }}" target="_blank" class="go"><code>{{ oauthProvider.domainPrefix }}</code></a></p>
         <a href="{{ url('oauthclient/apps/vend') }}" class="btn submit small">Edit connection</a>
     {% else %}
         <p>Your OAuth app needs a token generating, you can do this <a href="{{ url('oauthclient/apps') }}">here</a>.</p>
