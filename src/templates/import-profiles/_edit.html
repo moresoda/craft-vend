@@ -2,12 +2,30 @@
 {% extends "_layouts/cp" %}
 
 {% set fullPageForm = true %}
+{% set saveShortcutRedirect = continueEditingUrl %}
 
 {% import "_includes/forms" as forms %}
 
+{% block actionButton %}
+<div id="save-btn-container" class="btngroup submit">
+    <input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+    <div class="btn submit menubtn"></div>
+    <div class="menu" data-align="right">
+        <ul>
+            <li>
+                <a class="formsubmit" data-redirect="{{ '{continueEditingUrl}'|hash }}">
+                    {{ forms.optionShortcutLabel('S') }}
+                    {{ "Save and continue editing"|t('app') }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 
-    <input type="hidden" name="action" value="vend/import-profiles/save">
+    {{ actionInput('vend/import-profiles/save') }}
     {{ redirectInput('vend/import-profiles') }}
 
     {% if profile.id %}<input type="hidden" name="profileId" value="{{ profile.id }}">{% endif %}
@@ -37,11 +55,107 @@
         required: true
     }) }}
 
-{% endblock %}
+    {% set map = profile.getMap() %}
 
+    <table class="data fullwidth fixed-layout import-profile-map-table" dir="ltr">
+        <tbody>
+            <tr>
+                <th colspan="2"><h2>Vend Product Types</h2></th>
+            </tr>
+            <tr>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Included"|t('vend'),
+                        id: 'mapProductTypesIncluded',
+                        name: 'map[productTypes][included]',
+                        values: map['productTypes'] is defined ? map['productTypes']['included']: null,
+                        options: vendProductTypes,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Excluded"|t('vend'),
+                        id: 'mapProductTypesExcluded',
+                        name: 'map[productTypes][excluded]',
+                        values: map['productTypes'] is defined ? map['productTypes']['excluded']: null,
+                        options: vendProductTypes,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th colspan="2"><h2>Vend Brands</h2></th>
+            </tr>
+            <tr>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Included"|t('vend'),
+                        id: 'mapBrandsIncluded',
+                        name: 'map[brands][included]',
+                        values: map['brands'] is defined ? map['brands']['included']: null,
+                        options: vendBrands,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Excluded"|t('vend'),
+                        id: 'mapBrandsExcluded',
+                        name: 'map[brands][excluded]',
+                        values: map['brands'] is defined ? map['brands']['excluded']: null,
+                        options: vendBrands,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+            </tr>
+
+            <tr>
+                <th colspan="2"><h2>Vend Suppliers</h2></th>
+            </tr>
+            <tr>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Included"|t('vend'),
+                        id: 'mapSuppliersIncluded',
+                        name: 'map[suppliers][included]',
+                        values: map['suppliers'] is defined ? map['suppliers']['included']: null,
+                        options: vendSuppliers,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Excluded"|t('vend'),
+                        id: 'mapSuppliersExcluded',
+                        name: 'map[suppliers][excluded]',
+                        values: map['suppliers'] is defined ? map['suppliers']['excluded']: null,
+                        options: vendSuppliers,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
 
 {% js %}
     {% if profile is not defined or not profile.handle %}
         new Craft.HandleGenerator('#name', '#handle');
     {% endif %}
+
+    $(function() {
+        $('#mapProductTypesIncluded, #mapProductTypesExcluded, #mapBrandsIncluded, #mapBrandsExcluded, #mapSuppliersIncluded, #mapSuppliersExcluded').selectize({
+            dropdownParent: 'body'
+        });
+    });
 {% endjs %}
+
+{% css %}
+    .import-profile-map-table th,
+    .import-profile-map-table td {
+        border-top: 0 !important;
+        border-bottom: 0 !important;
+    }
+{% endcss %}

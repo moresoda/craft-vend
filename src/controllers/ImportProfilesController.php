@@ -15,8 +15,10 @@ use angellco\vend\models\ImportProfile;
 use angellco\vend\Vend;
 use Craft;
 use craft\errors\MissingComponentException;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use yii\base\ErrorException;
 use yii\base\Exception;
 use yii\base\NotSupportedException;
@@ -69,11 +71,12 @@ class ImportProfilesController extends Controller
      * Edit a profile.
      *
      * @param int|null           $profileId The profile’s ID, if editing an existing target.
-     * @param ImportProfile|null $profile The profile being edited, if there were any validation errors.
+     * @param ImportProfile|null $profile   The profile being edited, if there were any validation errors.
      *
      * @return Response
      * @throws NotFoundHttpException
      * @throws ForbiddenHttpException
+     * @throws IdentityProviderException
      */
     public function actionEdit(int $profileId = null, ImportProfile $profile = null): Response
     {
@@ -180,6 +183,9 @@ class ImportProfilesController extends Controller
         $variables[ 'profileId' ] = $profileId;
         $variables[ 'profile' ] = $profile;
 
+        // Set the "Continue Editing" URL
+        $variables['continueEditingUrl'] = "vend/import-profiles/{$profile->id}";
+
         return $this->renderTemplate('vend/import-profiles/_edit', $variables);
     }
 
@@ -209,8 +215,8 @@ class ImportProfilesController extends Controller
         $profile->name = (string) $request->getBodyParam('name');
         $profile->handle = (string) $request->getBodyParam('handle');
 
-        // TODO
-        $profile->map = ['thing' => 'other thing'];
+        $map = (array) $request->getBodyParam('map');
+        $profile->setMap($map);
 
         if (!Vend::$plugin->importProfiles->save($profile)) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save the import profile.'));

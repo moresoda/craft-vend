@@ -13,7 +13,6 @@ namespace angellco\vend\models;
 use Craft;
 use craft\base\Model;
 use craft\helpers\Json;
-use craft\validators\ArrayValidator;
 use craft\validators\HandleValidator;
 use craft\validators\UniqueValidator;
 
@@ -45,7 +44,7 @@ class ImportProfile extends Model
     public $handle;
 
     /**
-     * @var array Map
+     * @var string|array Map
      */
     public $map;
 
@@ -79,7 +78,6 @@ class ImportProfile extends Model
         $rules[] = [['name', 'handle'], UniqueValidator::class, 'targetClass' => __CLASS__];
         $rules[] = [['name', 'handle', 'map'], 'required'];
         $rules[] = [['name', 'handle'], 'string', 'max' => 255];
-        $rules[] = [['map'], ArrayValidator::class];
         return $rules;
     }
 
@@ -91,5 +89,29 @@ class ImportProfile extends Model
     public function __toString(): string
     {
         return Craft::t('site', $this->name) ?: static::class;
+    }
+
+    /**
+     * @return array|mixed|string
+     */
+    public function getMap()
+    {
+        if (is_array($this->map)) {
+            return $this->map;
+        }
+
+        return Json::decode($this->map);
+    }
+
+    /**
+     * @param array|string $map
+     */
+    public function setMap($map): void
+    {
+        if (is_array($map)) {
+            $map = Json::encode($map);
+        }
+
+        $this->map = $map;
     }
 }
