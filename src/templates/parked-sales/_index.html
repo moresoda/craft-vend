@@ -58,8 +58,7 @@
     {% endif %}
 {% endset %}
 
-
-{% set js %}
+{% js %}
     var adminTable = new Craft.AdminTable({
         tableSelector: '#parked-sales',
         noObjectsSelector: '#no-parked-sales',
@@ -68,5 +67,4 @@
         deleteSuccessMessage: '{{ "Parked sale deleted for order “{name}”."|t('vend') }}',
         deleteFailMessage:    '{{ "Couldn’t delete parked sale for order “{name}”."|t('vend') }}',
     });
-{% endset %}
-{% includeJs js %}
+{% endjs %}
