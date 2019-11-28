@@ -11,8 +11,11 @@
 namespace angellco\vend\services;
 
 use angellco\vend\oauth\providers\Vend as OauthProvider;
+use Craft;
 use craft\base\Component;
 use craft\helpers\UrlHelper;
+use Exception;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use venveo\oauthclient\models\Token as OauthToken;
 use venveo\oauthclient\Plugin as OauthPlugin;
 
@@ -51,7 +54,7 @@ class Api extends Component
      *
      * @param array $config
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct($config = [])
     {
@@ -70,7 +73,7 @@ class Api extends Component
                 /** @var OauthProvider $provider */
                 $this->oauthProvider = $this->oauthToken->getApp()->getProviderInstance()->getConfiguredProvider();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             throw $e;
         }
 
@@ -79,17 +82,36 @@ class Api extends Component
     /**
      * Gets and authenticated response and returns the parsed result.
      *
+     * Caches the response against the current token, uri and params
+     * for 5 minutes.
+     *
      * @param       $uri
      * @param array $params
      *
      * @return mixed
-     * @throws \League\OAuth2\Client\Provider\Exception\IdentityProviderException
+     * @throws IdentityProviderException
      */
     public function getResponse($uri, $params = [])
     {
+        $cache =Craft::$app->getCache();
+
+        // Make the cache key
+        $key = 'vend.'.md5($this->oauthToken.$uri.serialize($params));
+
+        // Check if we already have a cached version and return it if we do
+        $response = $cache->get($key);
+        if ($response)
+        {
+            return $response;
+        }
+
+        // We didn’t so fetch the request and cache it
         $url = $this->getPreparedUrl($uri, $params);
         $request = $this->oauthProvider->getAuthenticatedRequest('GET', $url, $this->oauthToken);
-        return $this->oauthProvider->getParsedResponse($request);
+        $response = $this->oauthProvider->getParsedResponse($request);
+        $cache->set($key, $response, 300);
+
+        return $response;
     }
 
     /**
