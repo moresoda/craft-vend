@@ -154,6 +154,30 @@ class ImportProfiles extends Component
     }
 
     /**
+     * Returns a profile by its handle.
+     *
+     * @param string $handle
+     *
+     * @return ImportProfile|null
+     */
+    public function getByHandle(string $handle): ?ImportProfile
+    {
+        /** @var ImportProfileRecord $profileRecord */
+        $profileRecord = ImportProfileRecord::find()
+            ->where(['handle' => $handle])
+            ->one();
+
+        $profile = $this->_createProfileFromRecord($profileRecord);
+
+        // Update the cache if we got one
+        if ($profile) {
+            $this->_profilesById[$profile->id] = $profile;
+        }
+
+        return $profile;
+    }
+
+    /**
      * Saves a profile into the project config
      *
      * @param ImportProfile $profile
@@ -187,7 +211,7 @@ class ImportProfiles extends Component
         $configData = [
             'name' => $profile->name,
             'handle' => $profile->handle,
-            'map' => $profile->map
+            'map' => $profile->getMap()
         ];
 
         $configPath = self::CONFIG_PROFILES_KEY . '.' . $profile->uid;

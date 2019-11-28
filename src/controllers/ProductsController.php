@@ -14,6 +14,8 @@ use angellco\vend\Vend;
 use Craft;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use yii\web\Response;
 
 /**
  * Products controller.
@@ -38,17 +40,18 @@ class ProductsController extends Controller
     // =========================================================================
 
     /**
-     * @return \yii\web\Response
-     * @throws \League\OAuth2\Client\Provider\Exception\IdentityProviderException
+     * @return Response
+     * @throws IdentityProviderException
      */
-    public function actionList(): \yii\web\Response
+    public function actionList(): Response
     {
-        $vendApi = Vend::$plugin->api;
+        $api = Vend::$plugin->api;
+        $profiles = Vend::$plugin->importProfiles;
         $request = Craft::$app->getRequest();
 
         // Set the page size
         $params = [
-            'page_size' => 100
+            'page_size' => 10 // DEBUG
         ];
 
         // Set the after param which will be the max version number in the
@@ -59,7 +62,23 @@ class ProductsController extends Controller
         }
 
         // Fetch the products
-        $response = $vendApi->getResponse('2.0/products', $params);
+        $response = $api->getResponse('2.0/products', $params);
+
+        // Check if we got nothing back and bail
+        if (!$response['data']) {
+            return $this->asJson([
+                'products' => [],
+                'nextUrl' => null
+            ]);
+        }
+
+        // Fetch the profile if there is one
+        $profileHandle = (string) $request->getQueryParam('profile');
+        $profile = $profiles->getByHandle($profileHandle);
+
+        // TODO And apply it
+
+        // TODO If we now have no products, fetch again
 
         // Make our response array
         $return = [
@@ -71,6 +90,8 @@ class ProductsController extends Controller
             'after' => $response['version']['max']
         ]);
         $return['nextUrl'] = $nextUrl;
+
+        Craft::dd($return);
 
         return $this->asJson($return);
     }
