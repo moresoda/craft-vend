@@ -11,7 +11,20 @@
 namespace angellco\vend\migrations;
 
 use Craft;
+use craft\base\Field;
 use craft\db\Migration;
+use craft\elements\Entry;
+use craft\errors\EntryTypeNotFoundException;
+use craft\errors\SectionNotFoundException;
+use craft\errors\SiteNotFoundException;
+use craft\fields\PlainText;
+use craft\models\FieldGroup;
+use craft\models\Section;
+use craft\models\Section_SiteSettings;
+use craft\records\FieldLayout;
+use craft\records\FieldLayoutField;
+use craft\records\FieldLayoutTab;
+use Throwable;
 
 /**
  * Vend install migration.
@@ -34,34 +47,24 @@ class Install extends Migration
     // =========================================================================
 
     /**
-     * This method contains the logic to be executed when applying this migration.
-     * This method differs from [[up()]] in that the DB logic implemented here will
-     * be enclosed within a DB transaction.
-     * Child classes may implement this method instead of [[up()]] if the DB logic
-     * needs to be within a transaction.
-     *
-     * @return boolean return a false value to indicate the migration fails
-     * and should not proceed further. All other return values mean the migration succeeds.
+     * @return bool
+     * @throws EntryTypeNotFoundException
+     * @throws SectionNotFoundException
+     * @throws SiteNotFoundException
+     * @throws Throwable
      */
     public function safeUp()
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         if ($this->createTables()) {
             $this->createIndexes();
-//
+            $this->insertDefaultData();
         }
         return true;
     }
 
     /**
-     * This method contains the logic to be executed when removing this migration.
-     * This method differs from [[down()]] in that the DB logic implemented here will
-     * be enclosed within a DB transaction.
-     * Child classes may implement this method instead of [[down()]] if the DB logic
-     * needs to be within a transaction.
-     *
-     * @return boolean return a false value to indicate the migration fails
-     * and should not proceed further. All other return values mean the migration succeeds.
+     * @return bool
      */
     public function safeDown()
     {
@@ -74,8 +77,6 @@ class Install extends Migration
     // =========================================================================
 
     /**
-     * Creates the tables needed for the Records used by the plugin
-     *
      * @return bool
      */
     protected function createTables()
@@ -104,11 +105,9 @@ class Install extends Migration
     }
 
     /**
-     * Creates the indexes needed for the Records used by the plugin
-     *
      * @return void
      */
-    protected function createIndexes()
+    protected function createIndexes(): void
     {
         // vend_importprofiles table
         $this->createIndex(null, '{{%vend_importprofiles}}', 'name', true);
@@ -116,13 +115,176 @@ class Install extends Migration
     }
 
     /**
-     * Removes the tables needed for the Records used by the plugin
-     *
      * @return void
      */
-    protected function removeTables()
+    protected function removeTables(): void
     {
         // vend_importprofiles table
         $this->dropTableIfExists('{{%vend_importprofiles}}');
+    }
+
+    /**
+     * @throws EntryTypeNotFoundException
+     * @throws SectionNotFoundException
+     * @throws SiteNotFoundException
+     * @throws Throwable
+     */
+    protected function insertDefaultData()
+    {
+        $this->_createVendProductsSection();
+    }
+
+    /**
+     * Creates the Vend Products Section
+     *
+     * @throws Throwable
+     * @throws EntryTypeNotFoundException
+     * @throws SectionNotFoundException
+     * @throws SiteNotFoundException
+     */
+    private function _createVendProductsSection(): void
+    {
+        $defaultSiteId = Craft::$app->getSites()->getPrimarySite()->id;
+
+        // Section
+        $section = new Section([
+            'name' => 'Vend Products',
+            'handle' => 'vendProducts',
+            'type' => 'channel',
+            'enableVersioning' => false,
+            'propagationMethod' => 'all',
+        ]);
+
+        $section->setSiteSettings([
+            new Section_SiteSettings([
+                'siteId' => $defaultSiteId,
+                'enabledByDefault' => true,
+                'hasUrls' => false,
+                'uriFormat' => null,
+                'template' => null
+            ])
+        ]);
+
+        if (Craft::$app->getSections()->saveSection($section)) {
+            $entryType = $section->getEntryTypes()[0];
+
+            $fieldsService = Craft::$app->getFields();
+
+            // Create a field group
+            $group = new FieldGroup(['name' => 'Vend']);
+            $fieldsService->saveGroup($group);
+
+            // Create the fields
+            $typeIdField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Type ID',
+                'handle' => 'vendProductTypeId',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $brandIdField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Brand ID',
+                'handle' => 'vendProductBrandId',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $supplierIdField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Supplier ID',
+                'handle' => 'vendProductSupplierId',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $jsonField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product JSON',
+                'handle' => 'vendProductJson',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [
+                    'code' => true,
+                    'multiline' => true,
+                ],
+            ]);
+
+            if (
+                $fieldsService->saveField($typeIdField)
+                && $fieldsService->saveField($brandIdField)
+                && $fieldsService->saveField($supplierIdField)
+                && $fieldsService->saveField($jsonField)
+            ) {
+
+                // Field layout
+                $this->insert(FieldLayout::tableName(), ['type' => Entry::class]);
+                $fieldLayoutId = $this->db->getLastInsertID(FieldLayout::tableName());
+
+                $this->insert(FieldLayoutTab::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'sortOrder' => 0,
+                    'name' => 'Product Details'
+                ]);
+                $tabId = $this->db->getLastInsertID(FieldLayoutTab::tableName());
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $typeIdField->id,
+                    'required' => true,
+                    'sortOrder' => 0
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $brandIdField->id,
+                    'required' => false,
+                    'sortOrder' => 1
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $supplierIdField->id,
+                    'required' => false,
+                    'sortOrder' => 2
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $jsonField->id,
+                    'required' => true,
+                    'sortOrder' => 3
+                ]);
+
+                $fieldLayout = $fieldsService->getLayoutById($fieldLayoutId);
+
+                if ($fieldLayout) {
+                    $entryType->setFieldLayout($fieldLayout);
+                    Craft::$app->getSections()->saveEntryType($entryType);
+                }
+            }
+
+        }
+
     }
 }

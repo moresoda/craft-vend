@@ -10,20 +10,24 @@
 
 namespace angellco\vend;
 
+use angellco\vend\models\Settings;
+use angellco\vend\oauth\providers\VendVenveo as VendProvider;
+use angellco\vend\services\Api as VendApi;
+use angellco\vend\services\ImportProfiles;
 use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\web\Controller;
 use craft\web\UrlManager;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use venveo\oauthclient\events\TokenEvent;
 use venveo\oauthclient\services\Providers;
 use venveo\oauthclient\services\Tokens;
-use angellco\vend\models\Settings;
-use angellco\vend\oauth\providers\VendVenveo as VendProvider;
-use angellco\vend\services\Api as VendApi;
-use angellco\vend\services\ImportProfiles;
 use yii\base\Event;
+use yii\web\Response;
 
 /**
  * @author    Angell & Co
@@ -32,7 +36,7 @@ use yii\base\Event;
  *
  * @property VendApi $api
  * @property ImportProfiles $importProfiles
- * @property \yii\web\Response|mixed $settingsResponse
+ * @property Response|mixed $settingsResponse
  */
 class Vend extends Plugin
 {
@@ -116,10 +120,10 @@ class Vend extends Plugin
     /**
      * Returns the settings page response.
      *
-     * @return mixed|\yii\web\Response
-     * @throws \Twig\Error\LoaderError
-     * @throws \Twig\Error\RuntimeError
-     * @throws \Twig\Error\SyntaxError
+     * @return mixed|Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function getSettingsResponse()
     {
