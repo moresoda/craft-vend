@@ -17,6 +17,7 @@ use craft\elements\Entry;
 use craft\errors\EntryTypeNotFoundException;
 use craft\errors\SectionNotFoundException;
 use craft\errors\SiteNotFoundException;
+use craft\fields\Lightswitch;
 use craft\fields\PlainText;
 use craft\models\FieldGroup;
 use craft\models\Section;
@@ -175,6 +176,18 @@ class Install extends Migration
             $fieldsService->saveGroup($group);
 
             // Create the fields
+            $productIdField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product ID',
+                'handle' => 'vendProductId',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
             $typeIdField = $fieldsService->createField([
                 'type' => PlainText::class,
                 'groupId' => $group->id,
@@ -211,6 +224,54 @@ class Install extends Migration
                 'settings' => [],
             ]);
 
+            $hasVariantsField = $fieldsService->createField([
+                'type' => Lightswitch::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Has Variants',
+                'handle' => 'vendProductHasVariants',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $isVariantField = $fieldsService->createField([
+                'type' => Lightswitch::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Is Variant',
+                'handle' => 'vendProductIsVariant',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $variantParentIdField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Variant Parent ID',
+                'handle' => 'vendProductVariantParentId',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $variantNameField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Variant Name',
+                'handle' => 'vendProductVariantName',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
             $jsonField = $fieldsService->createField([
                 'type' => PlainText::class,
                 'groupId' => $group->id,
@@ -227,9 +288,14 @@ class Install extends Migration
             ]);
 
             if (
-                $fieldsService->saveField($typeIdField)
+                $fieldsService->saveField($productIdField)
+                && $fieldsService->saveField($typeIdField)
                 && $fieldsService->saveField($brandIdField)
                 && $fieldsService->saveField($supplierIdField)
+                && $fieldsService->saveField($hasVariantsField)
+                && $fieldsService->saveField($isVariantField)
+                && $fieldsService->saveField($variantParentIdField)
+                && $fieldsService->saveField($variantNameField)
                 && $fieldsService->saveField($jsonField)
             ) {
 
@@ -247,7 +313,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $typeIdField->id,
+                    'fieldId' => $productIdField->id,
                     'required' => true,
                     'sortOrder' => 0
                 ]);
@@ -255,7 +321,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $brandIdField->id,
+                    'fieldId' => $typeIdField->id,
                     'required' => false,
                     'sortOrder' => 1
                 ]);
@@ -263,7 +329,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $supplierIdField->id,
+                    'fieldId' => $brandIdField->id,
                     'required' => false,
                     'sortOrder' => 2
                 ]);
@@ -271,9 +337,49 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
+                    'fieldId' => $supplierIdField->id,
+                    'required' => false,
+                    'sortOrder' => 3
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $hasVariantsField->id,
+                    'required' => false,
+                    'sortOrder' => 4
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $isVariantField->id,
+                    'required' => false,
+                    'sortOrder' => 5
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $variantParentIdField->id,
+                    'required' => false,
+                    'sortOrder' => 6
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $variantNameField->id,
+                    'required' => false,
+                    'sortOrder' => 7
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
                     'fieldId' => $jsonField->id,
                     'required' => true,
-                    'sortOrder' => 3
+                    'sortOrder' => 8
                 ]);
 
                 $fieldLayout = $fieldsService->getLayoutById($fieldLayoutId);
