@@ -305,10 +305,12 @@ class Vend extends Plugin
             Tokens::class,
             Tokens::EVENT_BEFORE_TOKEN_SAVED,
             static function (TokenEvent $e) {
-                $domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
-                Craft::$app->getPlugins()->savePluginSettings(self::$plugin, [
-                    'domainPrefix' => $domainPrefix
-                ]);
+                $domainPrefix = Craft::$app->getRequest()->getQueryParam('domain_prefix');
+                if ($domainPrefix) {
+                    Craft::$app->getPlugins()->savePluginSettings(self::$plugin, [
+                        'domainPrefix' => $domainPrefix
+                    ]);
+                }
             }
         );
 

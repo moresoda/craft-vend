@@ -71,11 +71,15 @@ class Vend extends AbstractProvider {
      * @param array $params
      *
      * @return string
-     * @throws \yii\web\BadRequestHttpException
      */
     public function getBaseAccessTokenUrl(array $params): string
     {
-        $this->domainPrefix = Craft::$app->getRequest()->getRequiredQueryParam('domain_prefix');
+        $domainPrefixParam = Craft::$app->getRequest()->getQueryParam('domain_prefix');
+
+        if ($domainPrefixParam) {
+            $this->domainPrefix = $domainPrefixParam;
+        }
+
         return $this->getApiUrl('1.0/token');
     }
 
@@ -155,53 +159,4 @@ class Vend extends AbstractProvider {
     protected function createResourceOwner(array $response, AccessToken $token) {
         throw new \RuntimeException('Vend does not allow access to the resource owners.');
     }
-
-//
-//    /**
-//     * Get a Vend API URL, depending on path.
-//     *
-//     * @param  string $path
-//     * @return string
-//     */
-//    protected function getApiUrl($path)
-//    {
-//        return "https://{$this->domainPrefix}.vendhq.com/api/{$path}";
-//    }
-//
-//    public function urlAuthorize()
-//    {
-//        return 'https://secure.vendhq.com/connect';
-//
-//    }
-//
-//    public function urlAccessToken()
-//    {
-//        return $this->getApiUrl('1.0/token');
-//    }
-//
-//    public function urlUserDetails(AccessToken $token)
-//    {
-//        throw new \RuntimeException('Vend does not provide details for single users');
-//    }
-//
-//    public function userDetails($response, AccessToken $token)
-//    {
-//        return [];
-//    }
-//
-//    /**
-//     * Helper method that can be used to fetch API responses.
-//     *
-//     * @param  string      $path
-//     * @param  AccessToken $token
-//     * @param  boolean     $as_array
-//     * @return array|object
-//     */
-//    public function getApiResponse($path, AccessToken $token, $as_array = true)
-//    {
-//        $url = $this->getApiUrl($path);
-//        $headers = $this->getHeaders($token);
-//        return json_decode($this->fetchProviderData($url, $headers), $as_array);
-//    }
-    
 }
