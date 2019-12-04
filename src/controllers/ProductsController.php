@@ -209,11 +209,22 @@ class ProductsController extends Controller
      */
     private function _rawProductEntryToVariantArray(Entry $rawProduct, $default = false): array
     {
+        $productJson = Json::decode($rawProduct->vendProductJson);
+        $options = [];
+
+        foreach ($productJson['variant_options'] as $option) {
+            $options[] = [
+                'name' => $option['name'],
+                'value' => $option['value']
+            ];
+        }
+
         return [
             'id' => $rawProduct->vendProductId,
             'name' => $rawProduct->vendProductVariantName,
             'default' => $default,
-            'productJson' => Json::decode($rawProduct->vendProductJson),
+            'options' => $options,
+            'productJson' => $productJson
         ];
     }
 
