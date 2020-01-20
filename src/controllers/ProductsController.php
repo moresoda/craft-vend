@@ -18,7 +18,6 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\twig\variables\Paginate;
-use Google\Cloud\SecurityCenter\V1\CreateFindingRequest;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use yii\web\Response;
 
