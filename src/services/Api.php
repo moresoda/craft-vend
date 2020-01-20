@@ -93,7 +93,7 @@ class Api extends Component
      */
     public function getResponse($uri, $params = [])
     {
-        $cache =Craft::$app->getCache();
+        $cache = Craft::$app->getCache();
 
         // Make the cache key
         $key = 'vend.'.md5($this->oauthToken.$uri.serialize($params));
