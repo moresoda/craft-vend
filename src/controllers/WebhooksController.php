@@ -38,14 +38,14 @@ class WebhooksController extends Controller
      */
     public function actionInventory(): Response
     {
-        $this->requirePostRequest();
+//        $this->requirePostRequest();// DEBUG
         $settings = Vend::$plugin->getSettings();
 
         $request = Craft::$app->getRequest();
 
         $type = $request->getRequiredParam('type');
-        $payload = $request->getRequiredParam('payload');
-        $payload = Json::decode($payload);
+//        $payload = $request->getRequiredParam('payload');// DEBUG
+        $payload = Json::decode('{"outlet_id":"b8ca3a65-011c-11e4-f728-e521433cf52f","count":"100","product_id":"02e60bb7-8d7a-11e9-f4c2-da07f6f36cf2"}');
 
         // Check it is the correct webhook and that we have the right data for the right outlet
         if ($type !== 'inventory.update' || !isset($payload['product_id'],$payload['count'],$payload['outlet_id']) || $payload['outlet_id'] !== $settings->vend_outletId)
@@ -57,6 +57,8 @@ class WebhooksController extends Controller
 
         $vendProductId = $payload['product_id'];
         $inventoryAmount = $payload['count'];
+
+        Craft::dd($vendProductId);
 
 //        // Get the Variant
 //        $criteria = craft()->elements->getCriteria('Commerce_Variant');
