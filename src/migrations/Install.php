@@ -272,6 +272,30 @@ class Install extends Migration
                 'settings' => [],
             ]);
 
+            $variantLabelField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Variant Label',
+                'handle' => 'vendProductVariantLabel',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
+            $variantInventoryField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Inventory Count',
+                'handle' => 'vendInventoryCount',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
             $jsonField = $fieldsService->createField([
                 'type' => PlainText::class,
                 'groupId' => $group->id,
@@ -296,6 +320,8 @@ class Install extends Migration
                 && $fieldsService->saveField($isVariantField)
                 && $fieldsService->saveField($variantParentIdField)
                 && $fieldsService->saveField($variantNameField)
+                && $fieldsService->saveField($variantLabelField)
+                && $fieldsService->saveField($variantInventoryField)
                 && $fieldsService->saveField($jsonField)
             ) {
 
@@ -377,9 +403,17 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
+                    'fieldId' => $variantInventoryField->id,
+                    'required' => false,
+                    'sortOrder' => 8
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
                     'fieldId' => $jsonField->id,
                     'required' => true,
-                    'sortOrder' => 8
+                    'sortOrder' => 9
                 ]);
 
                 $fieldLayout = $fieldsService->getLayoutById($fieldLayoutId);

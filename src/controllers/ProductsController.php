@@ -18,6 +18,7 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\twig\variables\Paginate;
+use Google\Cloud\SecurityCenter\V1\CreateFindingRequest;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use yii\web\Response;
 
@@ -198,6 +199,64 @@ class ProductsController extends Controller
         return $this->asJson($return);
     }
 
+    /**
+     * Fetches inventory from the Vend API.
+     *
+     * @return Response
+     * @throws IdentityProviderException
+     */
+    public function actionInventory(): Response
+    {
+        $api = Vend::$plugin->api;
+        $request = Craft::$app->getRequest();
+        $settings = Vend::$plugin->getSettings();
+
+        // Set the page size
+        $params = [
+            'page_size' => 5000
+        ];
+
+        // Set the after param which will be the max version number in the
+        // previous collection
+        $after = $request->getQueryParam('after');
+        if ($after) {
+            $params['after'] = $after;
+        }
+
+        // Fetch the products
+        $response = $api->getResponse('2.0/inventory', $params);
+
+        // Check if we got nothing back and bail
+        if (!$response['data']) {
+            return $this->asJson([
+                'products' => [],
+                'nextUrl' => null
+            ]);
+        }
+
+        // Prep the product array by stripping out records that don’t match
+        // our selected outlet
+        $products = [];
+        foreach ($response['data'] as $product) {
+            if ((string)$settings->vend_outletId === (string)$product['outlet_id']) {
+                $products[] = $product;
+            }
+        }
+
+        // Make the object we want Feed Me to consume
+        $return = [
+            'products' => $products,
+        ];
+
+        // Sort out the next URL
+        $nextUrl = UrlHelper::actionUrl('vend/products/inventory', [
+            'after' => $response['version']['max']
+        ]);
+        $return['nextUrl'] = $nextUrl;
+
+        return $this->asJson($return);
+    }
+
     // Private Methods
     // =========================================================================
 
@@ -222,7 +281,9 @@ class ProductsController extends Controller
         return [
             'id' => $rawProduct->vendProductId,
             'name' => $rawProduct->vendProductVariantName,
+            'parentProductId' => $rawProduct->vendProductVariantParentId,
             'default' => $default,
+            'inventory' => $rawProduct->vendInventoryCount,
             'options' => $options,
             'productJson' => $productJson
         ];
