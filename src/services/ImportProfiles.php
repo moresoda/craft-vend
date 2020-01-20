@@ -131,7 +131,7 @@ class ImportProfiles extends Component
      * @param int $profileId
      * @return ImportProfile|null
      */
-    public function getById(int $profileId): ?ImportProfile
+    public function getById(int $profileId)
     {
         if ($this->_profilesById !== null && array_key_exists($profileId, $this->_profilesById)) {
             return $this->_profilesById[$profileId];
@@ -160,7 +160,7 @@ class ImportProfiles extends Component
      *
      * @return ImportProfile|null
      */
-    public function getByHandle(string $handle): ?ImportProfile
+    public function getByHandle(string $handle)
     {
         /** @var ImportProfileRecord $profileRecord */
         $profileRecord = ImportProfileRecord::find()
@@ -232,7 +232,7 @@ class ImportProfiles extends Component
      *
      * @throws Throwable
      */
-    public function handleChangedProfile(ConfigEvent $event): void
+    public function handleChangedProfile(ConfigEvent $event)
     {
         $uid = $event->tokenMatches[0];
         $data = $event->newValue;
@@ -289,7 +289,7 @@ class ImportProfiles extends Component
      *
      * @throws Throwable
      */
-    public function handleDeletedProfile(ConfigEvent $event): void
+    public function handleDeletedProfile(ConfigEvent $event)
     {
         $uid = $event->tokenMatches[0];
         $record = $this->_getRecord($uid);

@@ -107,7 +107,7 @@ class ImportProfile extends Model
     /**
      * @param array|string $map
      */
-    public function setMap($map): void
+    public function setMap($map)
     {
         if (is_array($map)) {
             $map = Json::encode($map);

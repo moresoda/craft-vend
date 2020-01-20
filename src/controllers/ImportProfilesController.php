@@ -202,7 +202,7 @@ class ImportProfilesController extends Controller
      * @throws ForbiddenHttpException
      * @throws ServerErrorHttpException
      */
-    public function actionSave(): ?Response
+    public function actionSave()
     {
         $this->requireAdmin();
         $this->requirePostRequest();

@@ -75,7 +75,7 @@ class Vend extends Plugin
      * you do not need to load it in your init() method.
      *
      */
-    public function init(): void
+    public function init()
     {
         parent::init();
         self::$plugin = $this;
@@ -280,7 +280,7 @@ class Vend extends Plugin
     /**
      * Install our event listeners.
      */
-    protected function installEventListeners(): void
+    protected function installEventListeners()
     {
         // Register our CP routes
         Event::on(
@@ -335,7 +335,7 @@ class Vend extends Plugin
      *
      * @return Settings|null
      */
-    protected function createSettingsModel(): ?Settings
+    protected function createSettingsModel()
     {
         return new Settings();
     }
