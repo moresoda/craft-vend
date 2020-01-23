@@ -60,11 +60,11 @@ class ImportProfilesController extends Controller
     {
         $this->requireAdmin();
 
-        $profiles = Vend::$plugin->importProfiles->getAll();
+        $variables = [
+            'profiles' => Vend::$plugin->importProfiles->getAll()
+        ];
 
-        return $this->renderTemplate('vend/import-profiles/_index', [
-            'profiles' => $profiles
-        ]);
+        return $this->renderTemplate('vend/settings/import-profiles/index', $variables);
     }
 
     /**
@@ -146,18 +146,6 @@ class ImportProfilesController extends Controller
             }
         }
 
-        // Breadcrumbs
-        $variables[ 'crumbs' ] = [
-            [
-                'label' => Craft::t('vend', 'Vend'),
-                'url' => UrlHelper::url('vend')
-            ],
-            [
-                'label' => Craft::t('vend', 'Import Profiles'),
-                'url' => UrlHelper::url('vend/import-profiles')
-            ]
-        ];
-
         // Set up the model
         $variables[ 'brandNewProfile' ] = false;
 
@@ -183,10 +171,22 @@ class ImportProfilesController extends Controller
         $variables[ 'profileId' ] = $profileId;
         $variables[ 'profile' ] = $profile;
 
-        // Set the "Continue Editing" URL
-        $variables['continueEditingUrl'] = "vend/import-profiles/{$profile->id}";
+        // Breadcrumbs
+        $variables['crumbs'] = [
+            [
+                'label' => Craft::t('vend', 'Vend Settings'),
+                'url' => UrlHelper::url('vend/settings/general')
+            ],
+            [
+                'label' => Craft::t('vend', 'Import Profiles'),
+                'url' => UrlHelper::url('vend/settings/import-profiles')
+            ]
+        ];
 
-        return $this->renderTemplate('vend/import-profiles/_edit', $variables);
+        // Set the "Continue Editing" URL
+        $variables['continueEditingUrl'] = "vend/settings/import-profiles/{$profile->id}";
+
+        return $this->renderTemplate('vend/settings/import-profiles/_edit', $variables);
     }
 
     /**

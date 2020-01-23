@@ -146,11 +146,6 @@ class Vend extends Plugin
         ];
 
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $ret['subnav']['import-profiles'] = [
-                'label' => Craft::t('vend', 'Import Profiles'),
-                'url' => 'vend/import-profiles'
-            ];
-
             $ret['subnav']['settings'] = [
                 'label' => Craft::t('app', 'Settings'),
                 'url' => 'vend/settings'
@@ -175,11 +170,11 @@ class Vend extends Plugin
             static function(RegisterUrlRulesEvent $event) {
                 $event->rules['vend/parked-sales'] = 'vend/parked-sales/index';
 
-                $event->rules['vend/import-profiles'] = 'vend/import-profiles/index';
-                $event->rules['vend/import-profiles/new'] = 'vend/import-profiles/edit';
-                $event->rules['vend/import-profiles/<profileId:\d+>'] = 'vend/import-profiles/edit';
+                $event->rules['vend/settings/import-profiles'] = 'vend/import-profiles/index';
+                $event->rules['vend/settings/import-profiles/new'] = 'vend/import-profiles/edit';
+                $event->rules['vend/settings/import-profiles/<profileId:\d+>'] = 'vend/import-profiles/edit';
 
-                $event->rules['vend/settings'] = 'vend/settings/edit';
+                $event->rules['vend/settings/general'] = 'vend/settings/edit';
             }
         );
 

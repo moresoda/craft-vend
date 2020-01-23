@@ -13,6 +13,7 @@ namespace angellco\vend\controllers;
 use angellco\vend\Vend;
 use Craft;
 use craft\errors\MissingComponentException;
+use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
@@ -151,7 +152,7 @@ class SettingsController extends Controller
             $variables['oauthAppMissing'] = true;
         }
 
-        return $this->renderTemplate('vend/settings/index', $variables);
+        return $this->renderTemplate('vend/settings/general', $variables);
     }
 
     /**
@@ -175,14 +176,14 @@ class SettingsController extends Controller
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
-            return $this->renderTemplate('vend/settings/index', compact('settings'));
+            return $this->renderTemplate('vend/settings/general', compact('settings'));
         }
 
         $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Vend::$plugin, $settings->toArray());
 
         if (!$pluginSettingsSaved) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
-            return $this->renderTemplate('vend/settings/index', compact('settings'));
+            return $this->renderTemplate('vend/settings/general', compact('settings'));
         }
 
         Craft::$app->getSession()->setNotice(Craft::t('vend', 'Settings saved.'));
