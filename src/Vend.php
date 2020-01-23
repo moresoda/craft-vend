@@ -18,6 +18,7 @@ use Craft;
 use craft\base\Plugin;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
 use Twig\Error\LoaderError;
@@ -127,122 +128,7 @@ class Vend extends Plugin
      */
     public function getSettingsResponse()
     {
-
-        $variables = [
-            'oauthAppMissing' => false,
-            'oauthToken' => null,
-            'oauthProvider' => null,
-        ];
-
-        // Get the OAuth token and provider so we know we are connected
-        try {
-            $vendApi = $this->api;
-
-            if ($vendApi->oauthToken && $vendApi->oauthProvider) {
-
-                // Store the basics
-                $variables['oauthToken'] = $vendApi->oauthToken;
-                $variables['oauthProvider'] = $vendApi->oauthProvider;
-
-                // Users
-                $vendUsers = $vendApi->getResponse('2.0/users');
-                $variables['vendUsers'] = [
-                    [
-                        'label' => '',
-                        'value' => ''
-                    ]
-                ];
-                if (isset($vendUsers['data']))
-                {
-                    foreach ($vendUsers['data'] as $vendUser)
-                    {
-                        $variables['vendUsers'][] = [
-                            'label' => $vendUser['display_name'],
-                            'value' => $vendUser['id']
-                        ];
-                    }
-                }
-
-                // Outlets
-                $vendOutlets = $vendApi->getResponse('2.0/outlets');
-                $variables['vendOutlets'] = [
-                    [
-                        'label' => '',
-                        'value' => ''
-                    ]
-                ];
-                if (isset($vendOutlets['data']))
-                {
-                    foreach ($vendOutlets['data'] as $vendOutlet)
-                    {
-                        $variables['vendOutlets'][] = [
-                            'label' => $vendOutlet['name'],
-                            'value' => $vendOutlet['id']
-                        ];
-                    }
-                }
-
-                // Registers
-                $vendRegisters = $vendApi->getResponse('2.0/registers');
-                $variables['vendRegisters'] = [
-                    [
-                        'label' => '',
-                        'value' => ''
-                    ]
-                ];
-                if (isset($vendRegisters['data']))
-                {
-                    foreach ($vendRegisters['data'] as $vendRegister)
-                    {
-                        $variables['vendRegisters'][] = [
-                            'label' => $vendRegister['name'],
-                            'value' => $vendRegister['id']
-                        ];
-                    }
-                }
-
-                // Payment types
-                $vendPaymentTypes = $vendApi->getResponse('2.0/payment_types');
-                $variables['vendPaymentTypes'] = [
-                    [
-                        'label' => '',
-                        'value' => ''
-                    ]
-                ];
-                if (isset($vendPaymentTypes['data']))
-                {
-                    foreach ($vendPaymentTypes['data'] as $vendPaymentType)
-                    {
-                        $variables['vendPaymentTypes'][] = [
-                            'label' => $vendPaymentType['name'],
-                            'value' => $vendPaymentType['id']
-                        ];
-                    }
-                }
-
-            }
-        } catch (\Exception $e) {
-            // Suppress the exception
-            $variables['oauthAppMissing'] = true;
-        }
-
-
-        $variables['settings'] = $this->getSettings();
-
-        // Load up our settings template
-        $view = Craft::$app->getView();
-        $namespace = $view->getNamespace();
-        $view->setNamespace('settings');
-        $settingsHtml = $view->renderTemplate('vend/_settings.html', $variables);
-        $view->setNamespace($namespace);
-
-        /** @var Controller $controller */
-        $controller = Craft::$app->controller;
-
-        return $controller->renderTemplate('settings/plugins/_settings', [
-            'plugin' => $this,
-            'settingsHtml' => $settingsHtml
-        ]);
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('vend/settings'));
     }
 
     /**
@@ -292,6 +178,8 @@ class Vend extends Plugin
                 $event->rules['vend/import-profiles'] = 'vend/import-profiles/index';
                 $event->rules['vend/import-profiles/new'] = 'vend/import-profiles/edit';
                 $event->rules['vend/import-profiles/<profileId:\d+>'] = 'vend/import-profiles/edit';
+
+                $event->rules['vend/settings'] = 'vend/settings/edit';
             }
         );
 
