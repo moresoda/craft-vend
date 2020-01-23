@@ -1,0 +1,15 @@
+{% extends "_layouts/cp" %}
+
+{% import "_includes/forms" as forms %}
+
+{% set fullPageForm = true %}
+
+{% block content %}
+
+    {{ actionInput('vend/webhooks/save') }}
+    {{ redirectInput('vend/settings/webhooks') }}
+
+
+    {# TODO #}
+
+{% endblock %}

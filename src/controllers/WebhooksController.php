@@ -16,7 +16,9 @@ use craft\commerce\elements\Variant;
 use craft\elements\Entry;
 use craft\errors\ElementNotFoundException;
 use craft\helpers\Json;
+use craft\helpers\UrlHelper;
 use craft\web\Controller;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Throwable;
 use yii\base\Exception;
 use yii\web\BadRequestHttpException;
@@ -36,7 +38,11 @@ class WebhooksController extends Controller
     // =========================================================================
 
     /**
+     * Shows a list of the current webhooks created by this app.
+     *
+     * @return Response
      * @throws ForbiddenHttpException
+     * @throws IdentityProviderException
      */
     public function actionIndex(): Response
     {
@@ -51,8 +57,38 @@ class WebhooksController extends Controller
         $variables['webhooks'] = $webhooksResponse['data'];
 
         return $this->renderTemplate('vend/settings/webhooks/index', $variables);
-
     }
+
+    /**
+     * Edit form for creating webhooks.
+     *
+     * @return Response
+     * @throws ForbiddenHttpException
+     */
+    public function actionEdit(): Response
+    {
+        $this->requireAdmin();
+
+        $variables = [];
+
+        $variables[ 'title' ] = Craft::t('vend', 'Create a new webhook');
+
+        // Breadcrumbs
+        $variables['crumbs'] = [
+            [
+                'label' => Craft::t('vend', 'Vend Settings'),
+                'url' => UrlHelper::url('vend/settings/general')
+            ],
+            [
+                'label' => Craft::t('vend', 'Webhooks'),
+                'url' => UrlHelper::url('vend/settings/webhooks')
+            ]
+        ];
+
+        return $this->renderTemplate('vend/settings/webhooks/_edit', $variables);
+    }
+
+
 
     /**
      * Responds to the inventory.update webhook.
