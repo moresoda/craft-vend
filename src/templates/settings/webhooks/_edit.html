@@ -9,7 +9,19 @@
     {{ actionInput('vend/webhooks/save') }}
     {{ redirectInput('vend/settings/webhooks') }}
 
+    {{ forms.selectField({
+        label: 'Type'|t,
+        instructions: 'Choose the type of webhook that you want to create.'|t,
+        id: 'type',
+        name: 'type',
+        options: [
+            {
+                'label' : 'Inventory Update',
+                'value' : 'inventory.update'
+            }
+        ],
+        required: true,
+    }) }}
 
-    {# TODO #}
 
 {% endblock %}
