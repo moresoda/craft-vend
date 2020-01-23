@@ -12,8 +12,13 @@ namespace angellco\vend\controllers;
 
 use angellco\vend\Vend;
 use Craft;
+use craft\commerce\elements\Variant;
+use craft\elements\Entry;
+use craft\errors\ElementNotFoundException;
 use craft\helpers\Json;
 use craft\web\Controller;
+use Throwable;
+use yii\base\Exception;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
 
@@ -26,7 +31,6 @@ use yii\web\Response;
  */
 class WebhooksController extends Controller
 {
-
     // Public Methods
     // =========================================================================
 
@@ -35,17 +39,20 @@ class WebhooksController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException
+     * @throws Throwable
+     * @throws ElementNotFoundException
+     * @throws Exception
      */
     public function actionInventory(): Response
     {
-//        $this->requirePostRequest();// DEBUG
+        $this->requirePostRequest();
         $settings = Vend::$plugin->getSettings();
 
         $request = Craft::$app->getRequest();
 
         $type = $request->getRequiredParam('type');
-//        $payload = $request->getRequiredParam('payload');// DEBUG
-        $payload = Json::decode('{"outlet_id":"b8ca3a65-011c-11e4-f728-e521433cf52f","count":"100","product_id":"02e60bb7-8d7a-11e9-f4c2-da07f6f36cf2"}');
+        $payload = $request->getRequiredParam('payload');
+        $payload = Json::decode($payload);
 
         // Check it is the correct webhook and that we have the right data for the right outlet
         if ($type !== 'inventory.update' || !isset($payload['product_id'],$payload['count'],$payload['outlet_id']) || $payload['outlet_id'] !== $settings->vend_outletId)
@@ -55,48 +62,65 @@ class WebhooksController extends Controller
             ]);
         }
 
+        // Extract the relevant data
         $vendProductId = $payload['product_id'];
         $inventoryAmount = $payload['count'];
 
-        Craft::dd($vendProductId);
+        // We need to update the product Entries first, in case for some reason
+        // the actual Product feed runs before the Entries one updates
+        $entryQuery = Entry::find();
+        $entryCriteria = [
+            'limit' => 1,
+            'vendProductId' => $vendProductId,
+            'section' => 'vendProducts',
+        ];
+        Craft::configure($entryQuery, $entryCriteria);
 
-//        // Get the Variant
-//        $criteria = craft()->elements->getCriteria('Commerce_Variant');
-//        $criteria->limit = null;
-//        $criteria->status = null;
-//        $criteria->enabled = null;
-//        $criteria[$settings->variantVend_id] = $vendId;
-//        $variant = $criteria->first();
-//
-//            // Check we have a Variant, bail if not
-//            if (!$variant) {
-//                $this->returnJson(array(
-//                    'success' => true
-//                ));
-//            }
-//
-//            // Set the stock level
-//            $variant->setAttributes(array(
-//                'stock' => $newStock
-//            ));
-//
-//            // Try and commit the transaction
-//            CommerceDbHelper::beginStackedTransaction();
-//            try
-//            {
-//                craft()->commerce_variants->saveVariant($variant);
-//            }
-//            catch (Exception $e)
-//            {
-//                CommerceDbHelper::rollbackStackedTransaction();
-//                VendPlugin::log(Craft::t('Couldn’t save a stock of {stock} on the Variant with a Vend ID of {id}.', array('stock' => $stock, 'id' => $payload['product_id'])), LogLevel::Error);
-//                return false;
-//            }
-//            CommerceDbHelper::commitStackedTransaction();
+        $entry = $entryQuery->one();
+        if (!$entry) {
+            // TODO logging
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        $elements = Craft::$app->getElements();
+
+        $entry->vendInventoryCount = $inventoryAmount;
+        if (!$elements->saveElement($entry)) {
+            // TODO logging
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        // Get the Variant and update that
+        $variantQuery = Variant::find();
+        $variantCriteria = [
+            'limit' => 1,
+            'status' => null,
+            'vendProductId' => $vendProductId
+        ];
+        Craft::configure($variantQuery, $variantCriteria);
+
+        $variant = $variantQuery->one();
+        if (!$variant) {
+            // TODO logging
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        $variant->stock = $inventoryAmount;
+        if (!$elements->saveElement($variant)) {
+            // TODO logging
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
 
         return $this->asJson([
             'success' => true
         ]);
-
     }
 }
