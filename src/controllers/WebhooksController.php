@@ -43,6 +43,12 @@ class WebhooksController extends Controller
         $this->requireAdmin();
 
         $variables = [];
+        $vendApi = Vend::$plugin->api;
+
+        // Current webhooks
+        $webhooksResponse = $vendApi->getResponse('2.0/webhooks');
+
+        $variables['webhooks'] = $webhooksResponse['data'];
 
         return $this->renderTemplate('vend/settings/webhooks/index', $variables);
 

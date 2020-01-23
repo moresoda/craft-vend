@@ -1,5 +1,43 @@
 {% extends "vend/_layouts/settings" %}
 
+{% block actionButton %}
+    <a href="{{ url('vend/settings/webhooks/new') }}" class="btn submit add icon">{{ "New Webhook"|t('vend') }}</a>
+{% endblock %}
+
 {% block content %}
     <h2>{{ "Webhooks"|t('vend') }}</h2>
+
+    <p id="no-webhooks"{% if webhooks is not empty %} class="hidden"{% endif %}>
+        {{ "No webhooks exist yet."|t('vend') }}
+    </p>
+
+    {% if webhooks is not empty %}
+        <table id="webhooks" class="data fullwidth collapsible">
+            <thead>
+            <th scope="col">{{ "Type" }}</th>
+            <th scope="col">{{ "URL" }}</th>
+            <th scope="col">{{ "Status" }}</th>
+            <td class="thin"></td>
+            </thead>
+            <tbody>
+            {% for webhook in webhooks %}
+                <tr data-id="{{ webhook.id }}" data-type="{{ webhook.type }}" data-url="{{ webhook.url }}" data-status="{{ webhook.status }}">
+                    <th scope="row" data-title="{{ 'Type' }}">{{ webhook.type }}</th>
+                    <td class="code" data-title="{{ 'URL' }}">{{ webhook.url }}</td>
+                    <td  data-title="{{ 'Status' }}">{{ webhook.status }}</td>
+                    <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}"></a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}
+
+{% js %}
+    var adminTable = new Craft.AdminTable({
+        tableSelector: '#webhooks',
+        noItemsSelector: '#no-webhooks',
+        deleteAction: 'vend/webhooks/delete',
+        confirmDeleteMessage: '{{ "Are you sure you want to delete “{name}”?"|t('vend') }}',
+    });
+{% endjs %}

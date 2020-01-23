@@ -175,6 +175,7 @@ class Vend extends Plugin
                 $event->rules['vend/settings/import-profiles/<profileId:\d+>'] = 'vend/import-profiles/edit';
 
                 $event->rules['vend/settings/webhooks'] = 'vend/webhooks/index';
+                $event->rules['vend/settings/webhooks/new'] = 'vend/webhooks/edit';
 
                 $event->rules['vend/settings/general'] = 'vend/settings/edit';
             }

@@ -7,30 +7,28 @@
 {% block content %}
     <h2>{{ "Import Profiles"|t('vend') }}</h2>
 
-    <div class="field">
-        <p id="no-profiles"{% if profiles %} class="hidden"{% endif %}>
-            {{ "No import profiles exist yet."|t('vend') }}
-        </p>
+    <p id="no-profiles"{% if profiles %} class="hidden"{% endif %}>
+        {{ "No import profiles exist yet."|t('vend') }}
+    </p>
 
-        {% if profiles %}
-            <table id="profiles" class="data fullwidth collapsible">
-                <thead>
-                    <th scope="col">{{ "Name"|t('app') }}</th>
-                    <th scope="col">{{ "Handle"|t('handle') }}</th>
-                    <td class="thin"></td>
-                </thead>
-                <tbody>
-                {% for profile in profiles %}
-                    <tr data-id="{{ profile.id }}" data-name="{{ profile.name }}"  data-handle="{{ profile.handle }}">
-                        <th scope="row" data-title="{{ 'Name'|t('app') }}"><a href="{{ url('vend/settings/import-profiles/' ~ profile.id) }}">{{ profile.name|t('site') }}</a></th>
-                        <td class="code" data-title="{{ 'Handle'|t('app') }}">{{ profile.handle }}</td>
-                        <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}"></a></td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
-    </div>
+    {% if profiles %}
+        <table id="profiles" class="data fullwidth collapsible">
+            <thead>
+                <th scope="col">{{ "Name"|t('app') }}</th>
+                <th scope="col">{{ "Handle"|t('handle') }}</th>
+                <td class="thin"></td>
+            </thead>
+            <tbody>
+            {% for profile in profiles %}
+                <tr data-id="{{ profile.id }}" data-name="{{ profile.name }}"  data-handle="{{ profile.handle }}">
+                    <th scope="row" data-title="{{ 'Name'|t('app') }}"><a href="{{ url('vend/settings/import-profiles/' ~ profile.id) }}">{{ profile.name|t('site') }}</a></th>
+                    <td class="code" data-title="{{ 'Handle'|t('app') }}">{{ profile.handle }}</td>
+                    <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}"></a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}
 
 {% js %}
