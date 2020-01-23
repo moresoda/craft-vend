@@ -88,7 +88,28 @@ class WebhooksController extends Controller
         return $this->renderTemplate('vend/settings/webhooks/_edit', $variables);
     }
 
+    /**
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
+    public function actionSave()
+    {
+        $this->requireAdmin();
+        $this->requirePostRequest();
 
+        $request = Craft::$app->getRequest();
+
+        $type = $request->getBodyParam('type');
+
+        if ($type === 'inventory.update') {
+            $url = UrlHelper::actionUrl('vend/webhooks/inventory');
+        }
+
+        Craft::dd([$type,$url]);
+
+        // TODO make POST to API to create the endpoint
+
+    }
 
     /**
      * Responds to the inventory.update webhook.
