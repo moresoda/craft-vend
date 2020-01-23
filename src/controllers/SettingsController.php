@@ -13,7 +13,6 @@ namespace angellco\vend\controllers;
 use angellco\vend\Vend;
 use Craft;
 use craft\errors\MissingComponentException;
-use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;

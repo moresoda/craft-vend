@@ -20,6 +20,7 @@ use craft\web\Controller;
 use Throwable;
 use yii\base\Exception;
 use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -33,6 +34,19 @@ class WebhooksController extends Controller
 {
     // Public Methods
     // =========================================================================
+
+    /**
+     * @throws ForbiddenHttpException
+     */
+    public function actionIndex(): Response
+    {
+        $this->requireAdmin();
+
+        $variables = [];
+
+        return $this->renderTemplate('vend/settings/webhooks/index', $variables);
+
+    }
 
     /**
      * Responds to the inventory.update webhook.

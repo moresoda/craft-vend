@@ -15,12 +15,12 @@ use angellco\vend\models\ImportProfile;
 use angellco\vend\Vend;
 use Craft;
 use craft\errors\MissingComponentException;
-use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use yii\base\ErrorException;
 use yii\base\Exception;
+use yii\base\InvalidConfigException;
 use yii\base\NotSupportedException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -37,29 +37,29 @@ use yii\web\ServerErrorHttpException;
  */
 class ImportProfilesController extends Controller
 {
-    // Protected Properties
+    // Public Methods
     // =========================================================================
 
     /**
-     * @var    bool|array Allows anonymous access to this controller's actions.
-     *         The actions must be in 'kebab-case'
-     * @access protected
+     * @inheritdoc
+     *
+     * @throws InvalidConfigException
+     * @throws ForbiddenHttpException
      */
-    protected $allowAnonymous = false;
+    public function init()
+    {
+        $this->requireAdmin();
 
-    // Public Methods
-    // =========================================================================
+        parent::init();
+    }
 
     /**
      * Import profiles index page.
      *
      * @return Response
-     * @throws ForbiddenHttpException
      */
     public function actionIndex(): Response
     {
-        $this->requireAdmin();
-
         $variables = [
             'profiles' => Vend::$plugin->importProfiles->getAll()
         ];
@@ -75,13 +75,10 @@ class ImportProfilesController extends Controller
      *
      * @return Response
      * @throws NotFoundHttpException
-     * @throws ForbiddenHttpException
      * @throws IdentityProviderException
      */
     public function actionEdit(int $profileId = null, ImportProfile $profile = null): Response
     {
-        $this->requireAdmin();
-
         $variables = [];
 
         $vendApi = Vend::$plugin->api;
