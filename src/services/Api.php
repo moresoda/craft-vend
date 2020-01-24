@@ -13,9 +13,11 @@ namespace angellco\vend\services;
 use angellco\vend\oauth\providers\Vend as OauthProvider;
 use Craft;
 use craft\base\Component;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use Exception;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use Psr\Http\Message\StreamInterface;
 use venveo\oauthclient\models\Token as OauthToken;
 use venveo\oauthclient\Plugin as OauthPlugin;
 
@@ -80,7 +82,7 @@ class Api extends Component
     }
 
     /**
-     * Gets and authenticated response and returns the parsed result.
+     * Gets an authenticated response and returns the parsed result.
      *
      * Caches the response against the current token, uri and params
      * for 5 minutes.
@@ -112,6 +114,50 @@ class Api extends Component
         $cache->set($key, $response, 300);
 
         return $response;
+    }
+
+    /**
+     * Makes an authenticated POST request and returns the parsed result.
+     *
+     * @param string                               $uri
+     * @param string|null|resource|StreamInterface $body
+     * @param array                                $headers
+     *
+     * @return mixed
+     * @throws IdentityProviderException
+     */
+    public function postRequest($uri, $body, $headers = [])
+    {
+        $url = $this->oauthProvider->getApiUrl($uri);
+
+        $options = [];
+
+        if ($body) {
+            $options['body'] = $body;
+        }
+
+        if ($headers) {
+            $options['headers'] = $headers;
+        }
+
+        $request = $this->oauthProvider->getAuthenticatedRequest('POST', $url, $this->oauthToken, $options);
+
+        return $this->oauthProvider->getParsedResponse($request);
+    }
+
+    /**
+     * Makes an authenticated DELETE request and returns the parsed result.
+     *
+     * @param $uri
+     *
+     * @return mixed
+     * @throws IdentityProviderException
+     */
+    public function deleteRequest($uri)
+    {
+        $url = $this->oauthProvider->getApiUrl($uri);
+        $request = $this->oauthProvider->getAuthenticatedRequest('DELETE', $url, $this->oauthToken);
+        return $this->oauthProvider->getParsedResponse($request);
     }
 
     /**
