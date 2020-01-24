@@ -168,7 +168,14 @@ class WebhooksController extends Controller
         return $this->redirectToPostedUrl();
     }
 
-    public function actionDelete()
+    /**
+     * Deletes a webhook from the API.
+     *
+     * @return Response
+     * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
+     */
+    public function actionDelete(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
