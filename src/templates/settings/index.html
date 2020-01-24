@@ -1,0 +1,3 @@
+{% if currentUser.admin %}
+    {% redirect 'vend/settings/general' %}
+{% endif %}

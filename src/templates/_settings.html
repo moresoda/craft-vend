@@ -1,0 +1,339 @@
+{#    <hr>#}
+
+{#    <h2>Commerce settings</h2>#}
+
+{#    {{ forms.lightswitchField({#}
+{#        label: 'Set products to be promotable'|t,#}
+{#        instructions: 'Choose the default .'|t,#}
+{#        id: 'commerce_promotable',#}
+{#        name: 'commerce_promotable',#}
+{#        on: settings.commerce_promotable,#}
+{#        errors: settings.getErrors('commerce_promotable')#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Default Product Type'|t,#}
+{#        id: 'commerce_defaultProductTypeId',#}
+{#        name: 'commerce_defaultProductTypeId',#}
+{#        value: settings.commerce_defaultProductTypeId,#}
+{#        errors: settings.getErrors('commerce_defaultProductTypeId'),#}
+{#        options: productTypes,#}
+{#        required: true,#}
+{#    }) }}#}
+
+{#    {{ forms.lightswitchField({#}
+{#        label: 'Register Sales with Vend'|t,#}
+{#        instructions: 'Enable this so that whenever a sale goes through the result will be posted over to Vend to keep the books up to take at that end.'|t,#}
+{#        id: 'commerce_registerSales',#}
+{#        name: 'commerce_registerSales',#}
+{#        on: settings.commerce_registerSales,#}
+{#        errors: settings.getErrors('commerce_registerSales')#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Parked Sale Email'|t,#}
+{#        instructions: 'Whenever an attempt to register a sale with Vend fails the sale will be parked and an email sent - choose the Commerce Email to send.'|t,#}
+{#        id: 'commerce_parkedSaleEmailId',#}
+{#        name: 'commerce_parkedSaleEmailId',#}
+{#        value: settings.commerce_parkedSaleEmailId,#}
+{#        errors: settings.getErrors('commerce_parkedSaleEmailId'),#}
+{#        options: emails,#}
+{#        required: true,#}
+{#    }) }}#}
+
+{#    <hr>#}
+
+{#    <h2>Tax settings</h2>#}
+
+{#    <p>For each Sales Tax that you have set up in Vend choose the appropriate Tax Category that you want to match it to in Commerce.</p>#}
+
+{#    {% set taxCategoriesWithBlank = [{#}
+{#        'label' : '',#}
+{#        'value' : null#}
+{#    }]|merge(taxCategories) %}#}
+
+{#    {% for vendTax in vendTaxes %}#}
+{#        {{ forms.selectField({#}
+{#            label: vendTax.label|t,#}
+{#            id: 'commerce_taxCategoryMap-'~vendTax.value,#}
+{#            name: 'commerce_taxCategoryMap['~vendTax.value~']',#}
+{#            value: settings.commerce_taxCategoryMap[vendTax.value] is defined ? settings.commerce_taxCategoryMap[vendTax.value] : null,#}
+{#            errors: settings.getErrors('commerce_taxCategoryMap['~vendTax.value~']'),#}
+{#            options: taxCategoriesWithBlank#}
+{#        }) }}#}
+{#    {% endfor %}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Default Tax Category'|t,#}
+{#        instructions: 'Set a default in case a match can’t be determined.'|t,#}
+{#        id: 'commerce_defaultTaxCategoryId',#}
+{#        name: 'commerce_defaultTaxCategoryId',#}
+{#        value: settings.commerce_defaultTaxCategoryId,#}
+{#        errors: settings.getErrors('commerce_defaultTaxCategoryId'),#}
+{#        options: taxCategories,#}
+{#        required: true,#}
+{#    }) }}#}
+
+{#    <hr>#}
+{#    <h2>Assign Shipping Products</h2>#}
+
+{#    <p>In Vend, shipping is handled by special Products. Go to your Vend control panel and find the product you want and retrieve the ID from the last part of the url. You can see the tax amount when in the edit view.</p>#}
+
+{#    {% for shippingRule in shippingRules %}#}
+{#        <h3>{{ shippingRule.name }}</h3>#}
+
+{#        {{ forms.textField({#}
+{#            label: 'Vend ID'|t,#}
+{#            instructions: 'Input the Vend ID of the product that matches this shipping rule, if any.'|t,#}
+{#            id: 'shippingMap-' ~ shippingRule.id ~ '-id',#}
+{#            name: 'shippingMap['~shippingRule.id~'][id]',#}
+{#            value: settings.shippingMap[shippingRule.id]['id'] is defined ? settings.shippingMap[shippingRule.id]['id'] : null,#}
+{#            size: 50,#}
+{#            errors: settings.getErrors('shippingMap')#}
+{#        }) }}#}
+
+{#        {{ forms.textField({#}
+{#            label: 'Tax amount'|t,#}
+{#            instructions: 'The amount of the shipping cost that is tax.'|t,#}
+{#            id: 'shippingMap-' ~ shippingRule.id ~ '-tax',#}
+{#            name: 'shippingMap['~shippingRule.id~'][tax]',#}
+{#            value: settings.shippingMap[shippingRule.id]['tax'] is defined ? settings.shippingMap[shippingRule.id]['tax'] : null,#}
+{#            size: 50,#}
+{#            errors: settings.getErrors('shippingMap')#}
+{#        }) }}#}
+
+{#        {{ forms.selectField({#}
+{#            label: 'Sales tax'|t,#}
+{#            instructions: 'The matching Vend Sales Tax for this shipping product.'|t,#}
+{#            id: 'shippingMap-' ~ shippingRule.id ~ '-taxId',#}
+{#            name: 'shippingMap['~shippingRule.id~'][taxId]',#}
+{#            value: settings.shippingMap[shippingRule.id]['taxId'] is defined ? settings.shippingMap[shippingRule.id]['taxId'] : null,#}
+{#            errors: settings.getErrors('shippingMap'),#}
+{#            options: vendTaxes#}
+{#        }) }}#}
+
+{#    {% endfor %}#}
+
+{#    <hr>#}
+{#    <h2>Assign Vend Types</h2>#}
+
+{#    <p>Specifiy the Vend Types to exclude or include in a particular Product Type. If a match can’t be found the default product type set in the previous section will be used.</p>#}
+
+{#    <div class="field vend-settings-table">#}
+{#        <label for="commerce_excludeVendTypes">Excluded Types</label>#}
+{#        <input type="hidden" name="commerce_excludeVendTypes" value="">#}
+{#        {{ forms.editableTable({#}
+{#            id: 'commerce_excludeVendTypes',#}
+{#            name: 'commerce_excludeVendTypes',#}
+{#            rows: settings.commerce_excludeVendTypes,#}
+{#            errors: settings.getErrors('commerce_excludeVendTypes'),#}
+{#            cols: [#}
+{#                {#}
+{#                    'heading' : 'Vend Type',#}
+{#                    'type' : 'singleline'#}
+{#                }#}
+{#            ]#}
+{#        }) }}#}
+{#    </div>#}
+
+{#    {% for productType in productTypes if productType.value != settings.commerce_defaultProductTypeId %}#}
+{#        <div class="field vend-settings-table">#}
+{#            <label for="commerce_includeVendTypes[{{ productType.value }}]">Included Types in the <strong>{{ productType.label }}</strong> Product Type</label>#}
+{#            <input type="hidden" name="commerce_includeVendTypes[{{ productType.value }}]" value="">#}
+{#            {{ forms.editableTable({#}
+{#                id: 'commerce_includeVendTypes_' ~ productType.value,#}
+{#                name: 'commerce_includeVendTypes[' ~ productType.value ~ ']',#}
+{#                rows: settings.commerce_includeVendTypes ? settings.commerce_includeVendTypes[productType.value] : null,#}
+{#                errors: settings.getErrors('commerce_includeVendTypes[' ~ productType.value ~ ']'),#}
+{#                cols: [#}
+{#                    {#}
+{#                        'heading' : 'Vend Type',#}
+{#                        'type' : 'singleline'#}
+{#                    }#}
+{#                ]#}
+{#            }) }}#}
+{#        </div>#}
+{#    {% endfor %}#}
+
+{#    <hr>#}
+{#    <h2>Assign Vend data to Product fields</h2>#}
+
+{#    <p><strong>Note:</strong> you must select the Title field for both Products and Variants or the import will fail.</p>#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend ID'|t,#}
+{#        instructions: 'This will choose the `variant_parent_id` first if its not empty then fall back to just the `id` otherwise.'|t,#}
+{#        id: 'productVend_id',#}
+{#        name: 'productVend_id',#}
+{#        value: settings.productVend_id,#}
+{#        errors: settings.getErrors('productVend_id'),#}
+{#        options: productFields,#}
+{#        required: true,#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend name'|t,#}
+{#        id: 'productVend_name',#}
+{#        name: 'productVend_name',#}
+{#        value: settings.productVend_name,#}
+{#        errors: settings.getErrors('productVend_name'),#}
+{#        options: productFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend base name'|t,#}
+{#        id: 'productVend_base_name',#}
+{#        name: 'productVend_base_name',#}
+{#        value: settings.productVend_base_name,#}
+{#        errors: settings.getErrors('productVend_base_name'),#}
+{#        options: productFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend handle'|t,#}
+{#        id: 'productVend_handle',#}
+{#        name: 'productVend_handle',#}
+{#        value: settings.productVend_handle,#}
+{#        errors: settings.getErrors('productVend_handle'),#}
+{#        options: productFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend type'|t,#}
+{#        id: 'productVend_type',#}
+{#        name: 'productVend_type',#}
+{#        value: settings.productVend_type,#}
+{#        errors: settings.getErrors('productVend_type'),#}
+{#        options: productFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend description'|t,#}
+{#        id: 'productVend_description',#}
+{#        name: 'productVend_description',#}
+{#        value: settings.productVend_description,#}
+{#        errors: settings.getErrors('productVend_description'),#}
+{#        options: productFields#}
+{#    }) }}#}
+
+{#    <hr>#}
+{#    <h2>Assign Vend data to Variant fields</h2>#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend ID'|t,#}
+{#        id: 'variantVend_id',#}
+{#        name: 'variantVend_id',#}
+{#        value: settings.variantVend_id,#}
+{#        errors: settings.getErrors('variantVend_id'),#}
+{#        options: variantFields,#}
+{#        required: true,#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend name'|t,#}
+{#        id: 'variantVend_name',#}
+{#        name: 'variantVend_name',#}
+{#        value: settings.variantVend_name,#}
+{#        errors: settings.getErrors('variantVend_name'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend base name'|t,#}
+{#        id: 'variantVend_base_name',#}
+{#        name: 'variantVend_base_name',#}
+{#        value: settings.variantVend_base_name,#}
+{#        errors: settings.getErrors('variantVend_base_name'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend handle'|t,#}
+{#        id: 'variantVend_handle',#}
+{#        name: 'variantVend_handle',#}
+{#        value: settings.variantVend_handle,#}
+{#        errors: settings.getErrors('variantVend_handle'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend type'|t,#}
+{#        id: 'variantVend_type',#}
+{#        name: 'variantVend_type',#}
+{#        value: settings.variantVend_type,#}
+{#        errors: settings.getErrors('variantVend_type'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend description'|t,#}
+{#        id: 'variantVend_description',#}
+{#        name: 'variantVend_description',#}
+{#        value: settings.variantVend_description,#}
+{#        errors: settings.getErrors('variantVend_description'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant parent id'|t,#}
+{#        id: 'variantVend_variant_parent_id',#}
+{#        name: 'variantVend_variant_parent_id',#}
+{#        value: settings.variantVend_variant_parent_id,#}
+{#        errors: settings.getErrors('variantVend_variant_parent_id'),#}
+{#        options: variantFields,#}
+{#        required: true,#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant option one name'|t,#}
+{#        id: 'variantVend_variant_option_one_name',#}
+{#        name: 'variantVend_variant_option_one_name',#}
+{#        value: settings.variantVend_variant_option_one_name,#}
+{#        errors: settings.getErrors('variantVend_variant_option_one_name'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant option one value'|t,#}
+{#        id: 'variantVend_variant_option_one_value',#}
+{#        name: 'variantVend_variant_option_one_value',#}
+{#        value: settings.variantVend_variant_option_one_value,#}
+{#        errors: settings.getErrors('variantVend_variant_option_one_value'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant option two name'|t,#}
+{#        id: 'variantVend_variant_option_two_name',#}
+{#        name: 'variantVend_variant_option_two_name',#}
+{#        value: settings.variantVend_variant_option_two_name,#}
+{#        errors: settings.getErrors('variantVend_variant_option_two_name'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant option two value'|t,#}
+{#        id: 'variantVend_variant_option_two_value',#}
+{#        name: 'variantVend_variant_option_two_value',#}
+{#        value: settings.variantVend_variant_option_two_value,#}
+{#        errors: settings.getErrors('variantVend_variant_option_two_value'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant option three name'|t,#}
+{#        id: 'variantVend_variant_option_three_name',#}
+{#        name: 'variantVend_variant_option_three_name',#}
+{#        value: settings.variantVend_variant_option_three_name,#}
+{#        errors: settings.getErrors('variantVend_variant_option_three_name'),#}
+{#        options: variantFields#}
+{#    }) }}#}
+
+{#    {{ forms.selectField({#}
+{#        label: 'Vend variant option three value'|t,#}
+{#        id: 'variantVend_variant_option_three_value',#}
+{#        name: 'variantVend_variant_option_three_value',#}
+{#        value: settings.variantVend_variant_option_three_value,#}
+{#        errors: settings.getErrors('variantVend_variant_option_three_value'),#}
+{#        options: variantFields#}
+{#    }) }}#}

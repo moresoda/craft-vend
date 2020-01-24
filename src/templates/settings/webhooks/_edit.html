@@ -1,0 +1,36 @@
+{% extends "_layouts/cp" %}
+
+{% import "_includes/forms" as forms %}
+
+{% set fullPageForm = true %}
+
+{% block content %}
+
+    {{ actionInput('vend/webhooks/save') }}
+    {{ redirectInput('vend/settings/webhooks') }}
+
+    {{ forms.selectField({
+        label: 'Type'|t,
+        instructions: 'Choose the type of webhook that you want to create.'|t,
+        id: 'type',
+        name: 'type',
+        options: [
+            {
+                'label' : 'Inventory Update',
+                'value' : 'inventory.update'
+            },
+            {
+                'label' : 'Product Update',
+                'value' : 'product.update',
+                'disabled' : true
+            },
+            {
+                'label' : 'Customer Update',
+                'value' : 'customer.update',
+                'disabled' : true
+            }
+        ],
+        required: true,
+    }) }}
+
+{% endblock %}

@@ -10,13 +10,34 @@
 
 namespace angellco\vend;
 
+use angellco\vend\models\Settings;
+use angellco\vend\oauth\providers\VendVenveo as VendProvider;
+use angellco\vend\services\Api as VendApi;
+use angellco\vend\services\ImportProfiles;
 use Craft;
 use craft\base\Plugin;
+use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\UrlHelper;
+use craft\web\Controller;
+use craft\web\UrlManager;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use venveo\oauthclient\events\TokenEvent;
+use venveo\oauthclient\services\Providers;
+use venveo\oauthclient\services\Tokens;
+use yii\base\Event;
+use yii\web\Response;
 
 /**
  * @author    Angell & Co
  * @package   Vend
  * @since     2.0.0
+ *
+ * @property VendApi $api
+ * @property ImportProfiles $importProfiles
+ * @property Response|mixed $settingsResponse
  */
 class Vend extends Plugin
 {
@@ -60,6 +81,8 @@ class Vend extends Plugin
         parent::init();
         self::$plugin = $this;
 
+        // Install our event listeners
+        $this->installEventListeners();
 
 //        // Add our key resources
 //        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
@@ -93,6 +116,114 @@ class Vend extends Plugin
             ),
             __METHOD__
         );
+    }
+
+    /**
+     * Returns the settings page response.
+     *
+     * @return mixed|Response
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    public function getSettingsResponse()
+    {
+        return Craft::$app->getResponse()->redirect(UrlHelper::cpUrl('vend/settings'));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getCpNavItem(): array
+    {
+        $ret = parent::getCpNavItem();
+
+        $ret['label'] = Craft::t('vend', 'Vend');
+
+        $ret['subnav']['parked-sales'] = [
+            'label' => Craft::t('vend', 'Parked Sales'),
+            'url' => 'vend/parked-sales'
+        ];
+
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $ret['subnav']['settings'] = [
+                'label' => Craft::t('app', 'Settings'),
+                'url' => 'vend/settings'
+            ];
+        }
+
+        return $ret;
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Install our event listeners.
+     */
+    protected function installEventListeners()
+    {
+        // Register our CP routes
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            static function(RegisterUrlRulesEvent $event) {
+                $event->rules['vend/parked-sales'] = 'vend/parked-sales/index';
+
+                $event->rules['vend/settings/import-profiles'] = 'vend/import-profiles/index';
+                $event->rules['vend/settings/import-profiles/new'] = 'vend/import-profiles/edit';
+                $event->rules['vend/settings/import-profiles/<profileId:\d+>'] = 'vend/import-profiles/edit';
+
+                $event->rules['vend/settings/webhooks'] = 'vend/webhooks/index';
+                $event->rules['vend/settings/webhooks/new'] = 'vend/webhooks/edit';
+
+                $event->rules['vend/settings/general'] = 'vend/settings/edit';
+            }
+        );
+
+        // Registers our provider with the Venveo OAuth plugin
+        Event::on(
+            Providers::class,
+            Providers::EVENT_REGISTER_PROVIDER_TYPES,
+            static function (RegisterComponentTypesEvent $event) {
+                $event->types[] = VendProvider::class;
+            }
+        );
+
+        // Save the domain prefix into the plugin settings
+        Event::on(
+            Tokens::class,
+            Tokens::EVENT_BEFORE_TOKEN_SAVED,
+            static function (TokenEvent $e) {
+                $domainPrefix = Craft::$app->getRequest()->getQueryParam('domain_prefix');
+                if ($domainPrefix) {
+                    Craft::$app->getPlugins()->savePluginSettings(self::$plugin, [
+                        'domainPrefix' => $domainPrefix
+                    ]);
+                }
+            }
+        );
+
+        // Project config listeners
+        Craft::$app->projectConfig
+            ->onAdd($this->importProfiles::CONFIG_PROFILES_KEY.'.{uid}', [$this->importProfiles, 'handleChangedProfile'])
+            ->onUpdate($this->importProfiles::CONFIG_PROFILES_KEY.'.{uid}', [$this->importProfiles, 'handleChangedProfile'])
+            ->onRemove($this->importProfiles::CONFIG_PROFILES_KEY.'.{uid}', [$this->importProfiles, 'handleDeletedProfile']);
+
+        // Project config rebuild listener
+//        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $e) {
+//            $e->config[BlockTypes::CONFIG_BLOCKTYPE_KEY] = ProjectConfigHelper::rebuildProjectConfig();
+//        });
+    }
+
+    /**
+     * Creates and returns the model used to store the plugin’s settings.
+     *
+     * @return Settings|null
+     */
+    protected function createSettingsModel()
+    {
+        return new Settings();
     }
 
 }

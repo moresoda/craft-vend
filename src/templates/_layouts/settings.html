@@ -1,0 +1,37 @@
+{% extends "_layouts/cp" %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set title = "Settings"|t('vend') %}
+
+{% set navItems = {} %}
+
+{% if currentUser.admin %}
+    {% set navItems = {
+        'import-profiles': { title: "Import Profiles"|t('vend') },
+        'webhooks': { title: "Webhooks"|t('vend') },
+        'general': { title: "General Settings"|t('vend') },
+    } %}
+{% endif %}
+
+{% if selectedItem is not defined %}
+    {% set selectedItem = craft.app.request.getSegment(3) %}
+{% endif %}
+
+{% set docTitle = navItems[selectedItem].title~' - '~title %}
+
+{% block sidebar %}
+    <nav>
+        <ul>
+            {% for handle, item in navItems %}
+                {% if item.heading is defined %}
+                    <li class="heading"><span>{{ item.heading }}</span></li>
+                {% else %}
+                    <li>
+                        <a href="{{ url('vend/settings/'~handle) }}"{% if handle == selectedItem %} class="sel"{% endif %}>{{ item.title }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}
+

@@ -21,8 +21,11 @@
     }
   ],
   "require": {
+    "php": ">=7.0.0",
     "craftcms/cms": "^3.3.15",
-    "craftcms/commerce": "^2.2.8"
+    "craftcms/commerce": "^2.2.8",
+    "craftcms/feed-me": "^4.1",
+    "venveo/craft-oauthclient": "^2.1"
   },
   "autoload": {
     "psr-4": {
@@ -32,11 +35,12 @@
   "extra": {
     "name": "Vend",
     "handle": "vend",
-    "hasCpSettings": false,
+    "hasCpSettings": true,
     "hasCpSection": true,
     "changelogUrl": "https://raw.githubusercontent.com/angell-co/vend/master/CHANGELOG.md",
     "components": {
-
+      "api": "angellco\\vend\\services\\Api",
+      "importProfiles": "angellco\\vend\\services\\ImportProfiles"
     },
     "class": "angellco\\vend\\Vend"
   }
