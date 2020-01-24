@@ -56,7 +56,7 @@ class ProductsController extends Controller
 
         // Set the page size
         $params = [
-            'page_size' => 100,
+            'page_size' => 500,
             'deleted' => false
         ];
 
@@ -81,18 +81,21 @@ class ProductsController extends Controller
         // Format our result data
         $products = [];
         foreach ($response['data'] as $product) {
-            $products[] = [
-                'id' => $product['id'],
-                'name' => $product['name'],
-                'productTypeId' => $product['product_type_id'],
-                'brandId' => $product['brand_id'],
-                'supplierId' => $product['supplier_id'],
-                'hasVariants' => (bool) $product['has_variants'],
-                'isVariant' => (bool) $product['variant_parent_id'],
-                'variantParentId' => $product['variant_parent_id'],
-                'variantName' => $product['variant_name'],
-                'productJson' => Json::encode($product)
-            ];
+            if ($product['id']) {
+                $products[] = [
+                    'id' => $product['id'],
+                    'name' => $product['name'],
+                    'productTypeId' => $product['product_type_id'],
+                    'brandId' => $product['brand_id'],
+                    'supplierId' => $product['supplier_id'],
+                    'tagIds' => is_array($product['tag_ids']) ? implode(',', $product['tag_ids']) : $product['tag_ids'],
+                    'hasVariants' => (bool)$product['has_variants'],
+                    'isVariant' => (bool)$product['variant_parent_id'],
+                    'variantParentId' => $product['variant_parent_id'],
+                    'variantName' => $product['variant_name'],
+                    'productJson' => Json::encode($product)
+                ];
+            }
         }
 
         // Make our response array

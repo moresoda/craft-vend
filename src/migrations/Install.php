@@ -224,6 +224,18 @@ class Install extends Migration
                 'settings' => [],
             ]);
 
+            $tagIdsField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Product Tag IDs',
+                'handle' => 'vendProductTagIds',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [],
+            ]);
+
             $hasVariantsField = $fieldsService->createField([
                 'type' => Lightswitch::class,
                 'groupId' => $group->id,
@@ -316,6 +328,7 @@ class Install extends Migration
                 && $fieldsService->saveField($typeIdField)
                 && $fieldsService->saveField($brandIdField)
                 && $fieldsService->saveField($supplierIdField)
+                && $fieldsService->saveField($tagIdsField)
                 && $fieldsService->saveField($hasVariantsField)
                 && $fieldsService->saveField($isVariantField)
                 && $fieldsService->saveField($variantParentIdField)
@@ -371,7 +384,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $hasVariantsField->id,
+                    'fieldId' => $tagIdsField->id,
                     'required' => false,
                     'sortOrder' => 4
                 ]);
@@ -379,7 +392,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $isVariantField->id,
+                    'fieldId' => $hasVariantsField->id,
                     'required' => false,
                     'sortOrder' => 5
                 ]);
@@ -387,7 +400,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $variantParentIdField->id,
+                    'fieldId' => $isVariantField->id,
                     'required' => false,
                     'sortOrder' => 6
                 ]);
@@ -395,7 +408,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $variantNameField->id,
+                    'fieldId' => $variantParentIdField->id,
                     'required' => false,
                     'sortOrder' => 7
                 ]);
@@ -403,7 +416,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $variantInventoryField->id,
+                    'fieldId' => $variantNameField->id,
                     'required' => false,
                     'sortOrder' => 8
                 ]);
@@ -411,9 +424,17 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
+                    'fieldId' => $variantInventoryField->id,
+                    'required' => false,
+                    'sortOrder' => 9
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
                     'fieldId' => $jsonField->id,
                     'required' => true,
-                    'sortOrder' => 9
+                    'sortOrder' => 10
                 ]);
 
                 $fieldLayout = $fieldsService->getLayoutById($fieldLayoutId);

@@ -180,6 +180,23 @@ class ImportProfile extends Model
             ]);
         }
 
+        // Tags
+        if ($map['tags']['included']) {
+            $query->andWhere([
+                'in',
+                $fieldColumnPrefix.'vendProductTagIds',
+                array_values($map['tags']['included'])
+            ]);
+        }
+
+        if ($map['tags']['excluded']) {
+            $query->andWhere([
+                'not in',
+                $fieldColumnPrefix.'vendProductTagIds',
+                array_values($map['tags']['excluded'])
+            ]);
+        }
+
         return $query;
     }
 }
