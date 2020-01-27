@@ -164,6 +164,27 @@ class SettingsController extends Controller
                     }
                 }
 
+                // Discount product
+                $vendDiscountProducts = $vendApi->getResponse('products', [
+                    'handle' => 'vend-discount',
+                    'sku' => 'vend-discount'
+                ]);
+                $variables['vendDiscountProducts'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendDiscountProducts['products']))
+                {
+                    foreach ($vendDiscountProducts['products'] as $vendDiscountProduct)
+                    {
+                        $variables['vendDiscountProducts'][] = [
+                            'label' => $vendDiscountProduct['name'],
+                            'value' => $vendDiscountProduct['id']
+                        ];
+                    }
+                }
             }
         } catch (\Exception $e) {
             // Suppress the exception
@@ -193,6 +214,7 @@ class SettingsController extends Controller
         $settings->vend_outletId = $request->getBodyParam('vend_outletId') ?? $settings->vend_outletId;
         $settings->vend_registerId = $request->getBodyParam('vend_registerId') ?? $settings->vend_registerId;
         $settings->vend_retailerPaymentTypeId = $request->getBodyParam('vend_retailerPaymentTypeId') ?? $settings->vend_retailerPaymentTypeId;
+        $settings->vend_discountProductId = $request->getBodyParam('vend_discountProductId') ?? $settings->vend_discountProductId;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));

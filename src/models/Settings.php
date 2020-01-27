@@ -62,7 +62,10 @@ class Settings extends Model
      */
     public $vend_retailerPaymentTypeId;
 
+    /**
+     * @var string
+     */
+    public $vend_discountProductId;
 
-    // discount product ID (sku:vend-discount)
-    // shipping products
+    // TODO: shipping products
 }

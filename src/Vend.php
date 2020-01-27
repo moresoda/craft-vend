@@ -14,6 +14,7 @@ use angellco\vend\models\Settings;
 use angellco\vend\oauth\providers\VendVenveo as VendProvider;
 use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
+use angellco\vend\services\Orders;
 use Craft;
 use craft\base\Plugin;
 use craft\commerce\elements\Order;
