@@ -12,6 +12,7 @@ namespace angellco\vend\controllers;
 
 use angellco\vend\Vend;
 use Craft;
+use craft\commerce\Plugin as CommercePlugin;
 use craft\errors\MissingComponentException;
 use craft\web\Controller;
 use yii\base\InvalidConfigException;
@@ -46,7 +47,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Edit general plugin settings.
+     * Edit general settings.
      *
      * @return Response
      */
@@ -195,7 +196,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Save the plugin settings.
+     * Save the general settings.
      *
      * @return Response
      * @throws MissingComponentException
@@ -231,6 +232,62 @@ class SettingsController extends Controller
         Craft::$app->getSession()->setNotice(Craft::t('vend', 'Settings saved.'));
 
         return $this->redirectToPostedUrl();
+    }
+
+
+    /**
+     * Edit tax settings.
+     *
+     * @return Response
+     */
+    public function actionEditTax(): Response
+    {
+        $variables = [
+            'oauthAppMissing' => false,
+            'oauthToken' => null,
+            'oauthProvider' => null,
+            'settings' => Vend::$plugin->getSettings()
+        ];
+
+        // Get the OAuth token and provider so we know we are connected
+        try {
+            $vendApi = Vend::$plugin->api;
+
+            if ($vendApi->oauthToken && $vendApi->oauthProvider) {
+
+                // Store the basics
+                $variables['oauthToken'] = $vendApi->oauthToken;
+                $variables['oauthProvider'] = $vendApi->oauthProvider;
+
+                // Get taxes from the Vend API
+                $vendTaxes = $vendApi->getResponse('2.0/taxes');
+                $variables['vendTaxes'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendTaxes['data']))
+                {
+                    foreach ($vendTaxes['data'] as $vendTax)
+                    {
+                        $variables['vendTaxes'][] = [
+                            'label' => $vendTax['name'],
+                            'value' => $vendTax['id']
+                        ];
+                    }
+                }
+
+                // Get tax categories from Commerce
+                $variables['taxCategories'] = CommercePlugin::getInstance()->getTaxCategories()->getAllTaxCategories();
+
+            }
+        } catch (\Exception $e) {
+            // Suppress the exception
+            $variables['oauthAppMissing'] = true;
+        }
+
+        return $this->renderTemplate('vend/settings/tax', $variables);
     }
 
 }

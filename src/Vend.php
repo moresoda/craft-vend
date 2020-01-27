@@ -173,6 +173,7 @@ class Vend extends Plugin
                 $event->rules['vend/settings/webhooks/new'] = 'vend/webhooks/edit';
 
                 $event->rules['vend/settings/general'] = 'vend/settings/edit';
+                $event->rules['vend/settings/tax'] = 'vend/settings/edit-tax';
             }
         );
 

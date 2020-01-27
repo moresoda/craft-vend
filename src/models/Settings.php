@@ -67,5 +67,10 @@ class Settings extends Model
      */
     public $vend_discountProductId;
 
+    /**
+     * @var mixed
+     */
+    public $taxMap;
+
     // TODO: shipping products
 }
