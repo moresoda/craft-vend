@@ -10,6 +10,7 @@
 
 namespace angellco\vend\controllers;
 
+use angellco\vend\models\Settings;
 use angellco\vend\Vend;
 use Craft;
 use craft\commerce\Plugin as CommercePlugin;
@@ -208,6 +209,7 @@ class SettingsController extends Controller
 
         $request = Craft::$app->getRequest();
 
+        /** @var Settings $settings */
         $settings = Vend::$plugin->getSettings();
         $settings->vend_registerSales = (bool) ($request->getBodyParam('vend_registerSales') ?? $settings->vend_registerSales);
         $settings->vend_customerGroupId = $request->getBodyParam('vend_customerGroupId') ?? $settings->vend_customerGroupId;
@@ -233,7 +235,6 @@ class SettingsController extends Controller
 
         return $this->redirectToPostedUrl();
     }
-
 
     /**
      * Edit tax settings.
@@ -288,6 +289,40 @@ class SettingsController extends Controller
         }
 
         return $this->renderTemplate('vend/settings/tax', $variables);
+    }
+
+    /**
+     * Save the tax settings.
+     *
+     * @return Response
+     * @throws MissingComponentException
+     * @throws BadRequestHttpException
+     */
+    public function actionSaveTax(): Response
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+
+        /** @var Settings $settings */
+        $settings = Vend::$plugin->getSettings();
+        $settings->taxMap = $request->getBodyParam('taxMap') ?? $settings->taxMap;
+
+        if (!$settings->validate()) {
+            Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
+            return $this->renderTemplate('vend/settings/tax', compact('settings'));
+        }
+
+        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Vend::$plugin, $settings->toArray());
+
+        if (!$pluginSettingsSaved) {
+            Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
+            return $this->renderTemplate('vend/settings/tax', compact('settings'));
+        }
+
+        Craft::$app->getSession()->setNotice(Craft::t('vend', 'Settings saved.'));
+
+        return $this->redirectToPostedUrl();
     }
 
 }

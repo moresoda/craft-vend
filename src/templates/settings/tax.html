@@ -14,7 +14,7 @@
 
     {% if not oauthAppMissing and oauthToken and oauthProvider %}
     <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-        <input type="hidden" name="action" value="vend/settings/saveTax">
+        <input type="hidden" name="action" value="vend/settings/save-tax">
         {{ redirectInput('vend/settings/tax') }}
         {{ csrfInput() }}
 
