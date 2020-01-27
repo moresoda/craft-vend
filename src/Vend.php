@@ -16,6 +16,7 @@ use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
 use Craft;
 use craft\base\Plugin;
+use craft\commerce\elements\Order;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
@@ -35,8 +36,10 @@ use yii\web\Response;
  * @package   Vend
  * @since     2.0.0
  *
- * @property VendApi $api
+ * @property VendApi        $api
  * @property ImportProfiles $importProfiles
+ * @property Orders         $orders
+ * @property array          $cpNavItem
  * @property Response|mixed $settingsResponse
  */
 class Vend extends Plugin
@@ -96,14 +99,6 @@ class Vend extends Plugin
 //                craft()->templates->includeJs("new Vend.Sync()");
 //            }
 //
-//        }
-
-        // Bind to the order complete event so we can register the sale with Vend
-//        if ($this->getSettings()->commerce_registerSales) {
-//            craft()->on('commerce_orders.onOrderComplete', function(Event $event)
-//            {
-//                craft()->vend->registerSale($event->params['order']);
-//            });
 //        }
 
         // Log on load for debugging
@@ -202,6 +197,20 @@ class Vend extends Plugin
                 }
             }
         );
+
+        // Bind to the order complete event so we can register the sale with Vend
+        if ($this->getSettings()->vend_registerSales) {
+
+            Event::on(
+                Order::class,
+                Order::EVENT_AFTER_COMPLETE_ORDER,
+                static function(Event $e) {
+                    // @var Order $order
+                    $order = $e->sender;
+                    $this->orders->registerSale($order);
+                }
+            );
+        }
 
         // Project config listeners
         Craft::$app->projectConfig
