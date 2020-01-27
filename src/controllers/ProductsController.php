@@ -272,13 +272,20 @@ class ProductsController extends Controller
     {
         $productJson = Json::decode($rawProduct->vendProductJson);
         $options = [];
+        $formattedOptionNames = [];
+        $formattedOptionValues = [];
 
         foreach ($productJson['variant_options'] as $option) {
             $options[] = [
                 'name' => $option['name'],
                 'value' => $option['value']
             ];
+            $formattedOptionNames[] = $option['name'];
+            $formattedOptionValues[] = $option['value'];
         }
+
+        $formattedOptionNames = implode(',', $formattedOptionNames);
+        $formattedOptionValues = implode(',', $formattedOptionValues);
 
         return [
             'id' => $rawProduct->vendProductId,
@@ -286,6 +293,8 @@ class ProductsController extends Controller
             'parentProductId' => $rawProduct->vendProductVariantParentId,
             'default' => $default,
             'inventory' => $rawProduct->vendInventoryCount,
+            'formattedOptionNames' => $formattedOptionNames,
+            'formattedOptionValues' => $formattedOptionValues,
             'options' => $options,
             'productJson' => $productJson
         ];
