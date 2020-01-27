@@ -168,6 +168,7 @@ class SettingsController extends Controller
         $request = Craft::$app->getRequest();
 
         $settings = Vend::$plugin->getSettings();
+        $settings->vend_registerSales = (bool) ($request->getBodyParam('vend_registerSales') ?? $settings->vend_registerSales);
         $settings->vend_userId = $request->getBodyParam('vend_userId') ?? $settings->vend_userId;
         $settings->vend_outletId = $request->getBodyParam('vend_outletId') ?? $settings->vend_outletId;
         $settings->vend_registerId = $request->getBodyParam('vend_registerId') ?? $settings->vend_registerId;

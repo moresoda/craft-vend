@@ -2,6 +2,8 @@
 
 {% import "_includes/forms" as forms %}
 
+{% from "vend/_includes/macros.html" import configWarning %}
+
 {% block content %}
     <h2>{{ "Store Connection"|t('vend') }}</h2>
 
@@ -26,7 +28,14 @@
 
             <h2>{{ "Vend Settings"|t('vend') }}</h2>
 
-            <p>Select the corresponding objects that you want to be used when sending data back to your Vend store.</p>
+            {{ forms.lightswitchField({
+                label: 'Register Sales'|t,
+                instructions: 'Switch this on to send completed orders to Vend.'|t,
+                warning: configWarning("vend_registerSales", "vend"),
+                id: 'vend_registerSales',
+                name: 'vend_registerSales',
+                on: settings.vend_registerSales,
+            }) }}
 
             {{ forms.selectField({
                 label: 'User'|t,

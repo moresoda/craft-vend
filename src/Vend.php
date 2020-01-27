@@ -97,9 +97,8 @@ class Vend extends Plugin
 //            }
 //
 //        }
-//
-//        // Bind to the order complete event so we can register the sale with Vend
-//        // but only if the settings allow us to ;)
+
+        // Bind to the order complete event so we can register the sale with Vend
 //        if ($this->getSettings()->commerce_registerSales) {
 //            craft()->on('commerce_orders.onOrderComplete', function(Event $event)
 //            {

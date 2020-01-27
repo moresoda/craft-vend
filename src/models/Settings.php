@@ -33,6 +33,11 @@ class Settings extends Model
     // =========================================================================
 
     /**
+     * @var bool
+     */
+    public $vend_registerSales = false;
+
+    /**
      * @var string
      */
     public $vend_userId;
