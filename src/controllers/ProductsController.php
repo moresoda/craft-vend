@@ -10,6 +10,7 @@
 
 namespace angellco\vend\controllers;
 
+use angellco\vend\models\Settings;
 use angellco\vend\Vend;
 use Craft;
 use craft\db\Paginator;
@@ -53,6 +54,8 @@ class ProductsController extends Controller
     {
         $api = Vend::$plugin->api;
         $request = Craft::$app->getRequest();
+        /** @var Settings $settings */
+        $settings = Vend::$plugin->getSettings();
 
         // Set the page size
         $params = [
@@ -81,7 +84,7 @@ class ProductsController extends Controller
         // Format our result data
         $products = [];
         foreach ($response['data'] as $product) {
-            if ($product['id']) {
+            if ($product['id'] && $product['id'] !== $settings->vend_discountProductId) {
                 $products[] = [
                     'id' => $product['id'],
                     'name' => $product['name'],
