@@ -26,12 +26,24 @@
         <div id="vendShippingProductType-spinner" class="spinner left hidden"></div>
 
 
-        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut id="shippingMapForm" class="hidden">
             <input type="hidden" name="action" value="vend/settings/save-shipping">
             {{ redirectInput('vend/settings/shipping') }}
             {{ csrfInput() }}
 
-{#            <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">#}
+            <div id="shippingMapFields">
+                {% for shippingRule in shippingRules %}
+                    {{ forms.selectField({
+                        label: shippingRule.name,
+                        instructions: 'Choose the Vend Shipping Product you want to match this shipping rule to.'|t,
+                        id: 'shippingMap-'~shippingRule.id,
+                        name: 'shippingMap['~shippingRule.id~']',
+                        value: settings.shippingMap and settings.shippingMap[shippingRule.id] is defined ? settings.shippingMap[shippingRule.id] : null,
+                    }) }}
+                {% endfor %}
+            </div>
+
+            <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
         </form>
     {% endif %}
 {% endblock %}
@@ -39,7 +51,9 @@
 
 {% js %}
     var $productTypeInput = $("#vendShippingProductType"),
-        $spinner = $('#vendShippingProductType-spinner');
+        $spinner = $('#vendShippingProductType-spinner'),
+        $shippingMapForm = $('shippingMapForm'),
+        $shippingMapFields = $('shippingMapFields');
 
     $productTypeInput.change(function(e) {
         var typeId = $(this).val();
@@ -52,7 +66,15 @@
         Craft.postActionRequest('vend/settings/get-shipping-products', data, function(response, textStatus) {
             $spinner.addClass('hidden');
             if (textStatus === 'success') {
-                console.log(response);
+
+                $.each($shippingMapFields.find('.field'), function(index, $field) {
+                    // TODO - fix this here
+                    $.each(response.products, function(index2, product) {
+                        $('<option value="'+product.value+'">'+product.label+'</option>').appendTo($field.find('select'));
+                    });
+                });
+
+                $shippingMapForm.removeClass('hidden');
             }
         });
 

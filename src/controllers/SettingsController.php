@@ -369,6 +369,9 @@ class SettingsController extends Controller
                     }
                 }
 
+                // Get the shipping rules
+                $variables['shippingRules'] = CommercePlugin::getInstance()->getShippingRules()->getAllShippingRules();
+
             }
         } catch (\Exception $e) {
             // Suppress the exception
