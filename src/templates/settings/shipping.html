@@ -1,0 +1,60 @@
+{% extends "vend/_layouts/settings" %}
+
+{% import "_includes/forms" as forms %}
+
+{% from "vend/_includes/macros.html" import configWarning %}
+
+{% block content %}
+
+    {% if oauthAppMissing %}
+        <p>You are not connected to Vend, <a href="{{ url('oauthclient/apps') }}">please connect to your Vend store</a> first.</p>
+    {% elseif not oauthToken or not oauthProvider %}
+        <p>Your OAuth app needs a token generating, you can do this <a href="{{ url('oauthclient/apps') }}">here</a>.</p>
+    {% endif %}
+
+    {% if not oauthAppMissing and oauthToken and oauthProvider %}
+        <h2>{{ "Shipping Settings"|t('vend') }}</h2>
+
+        {{ forms.selectField({
+            label: 'Shipping Product Type'|t,
+            instructions: 'Choose the Vend Product Type that contains your shipping products.'|t,
+            id: 'vendShippingProductType',
+            name: 'vendShippingProductType',
+            options: vendProductTypes,
+            required: true,
+        }) }}
+        <div id="vendShippingProductType-spinner" class="spinner left hidden"></div>
+
+
+        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+            <input type="hidden" name="action" value="vend/settings/save-shipping">
+            {{ redirectInput('vend/settings/shipping') }}
+            {{ csrfInput() }}
+
+{#            <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">#}
+        </form>
+    {% endif %}
+{% endblock %}
+
+
+{% js %}
+    var $productTypeInput = $("#vendShippingProductType"),
+        $spinner = $('#vendShippingProductType-spinner');
+
+    $productTypeInput.change(function(e) {
+        var typeId = $(this).val();
+
+        $spinner.removeClass('hidden');
+
+        var data = {
+            'typeId': typeId
+        };
+        Craft.postActionRequest('vend/settings/get-shipping-products', data, function(response, textStatus) {
+            $spinner.addClass('hidden');
+            if (textStatus === 'success') {
+                console.log(response);
+            }
+        });
+
+    });
+{% endjs %}

@@ -174,6 +174,7 @@ class Vend extends Plugin
 
                 $event->rules['vend/settings/general'] = 'vend/settings/edit';
                 $event->rules['vend/settings/tax'] = 'vend/settings/edit-tax';
+                $event->rules['vend/settings/shipping'] = 'vend/settings/edit-shipping';
             }
         );
 

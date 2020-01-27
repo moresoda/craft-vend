@@ -72,5 +72,8 @@ class Settings extends Model
      */
     public $taxMap;
 
-    // TODO: shipping products
+    /**
+     * @var mixed
+     */
+    public $shippingMap;
 }

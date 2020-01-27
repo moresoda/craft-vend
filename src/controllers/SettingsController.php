@@ -16,6 +16,7 @@ use Craft;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\errors\MissingComponentException;
 use craft\web\Controller;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -307,6 +308,137 @@ class SettingsController extends Controller
         /** @var Settings $settings */
         $settings = Vend::$plugin->getSettings();
         $settings->taxMap = $request->getBodyParam('taxMap') ?? $settings->taxMap;
+
+        if (!$settings->validate()) {
+            Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
+            return $this->renderTemplate('vend/settings/tax', compact('settings'));
+        }
+
+        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(Vend::$plugin, $settings->toArray());
+
+        if (!$pluginSettingsSaved) {
+            Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
+            return $this->renderTemplate('vend/settings/tax', compact('settings'));
+        }
+
+        Craft::$app->getSession()->setNotice(Craft::t('vend', 'Settings saved.'));
+
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Edit shipping settings.
+     *
+     * @return Response
+     */
+    public function actionEditShipping(): Response
+    {
+        $variables = [
+            'oauthAppMissing' => false,
+            'oauthToken' => null,
+            'oauthProvider' => null,
+            'settings' => Vend::$plugin->getSettings()
+        ];
+
+        // Get the OAuth token and provider so we know we are connected
+        try {
+            $vendApi = Vend::$plugin->api;
+
+            if ($vendApi->oauthToken && $vendApi->oauthProvider) {
+
+                // Store the basics
+                $variables['oauthToken'] = $vendApi->oauthToken;
+                $variables['oauthProvider'] = $vendApi->oauthProvider;
+
+                // Get product types from the Vend API
+                $vendProductTypes = $vendApi->getResponse('2.0/product_types');
+                $variables['vendProductTypes'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendProductTypes['data']))
+                {
+                    foreach ($vendProductTypes['data'] as $vendProductType)
+                    {
+                        $variables['vendProductTypes'][] = [
+                            'label' => $vendProductType['name'],
+                            'value' => $vendProductType['id']
+                        ];
+                    }
+                }
+
+            }
+        } catch (\Exception $e) {
+            // Suppress the exception
+            $variables['oauthAppMissing'] = true;
+        }
+
+        return $this->renderTemplate('vend/settings/shipping', $variables);
+    }
+
+    /**
+     * Returns a list of products for a given product type.
+     *
+     * @return Response
+     * @throws BadRequestHttpException
+     * @throws IdentityProviderException
+     */
+    public function actionGetShippingProducts(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $request = Craft::$app->getRequest();
+        $vendApi = Vend::$plugin->api;
+
+        // Get the product type ID
+        $typeId = $request->getBodyParam('typeId');
+
+        // Get products in that product type
+        $vendProducts = $vendApi->getResponse('2.0/search', [
+            'type' => 'products',
+            'product_type_id' => $typeId
+        ]);
+
+        $productOptions = [];
+        if (isset($vendProducts['data'])) {
+            foreach ($vendProducts['data'] as $vendProduct)
+            {
+                $productOptions[] = [
+                    'label' => $vendProduct['name'],
+                    'value' => $vendProduct['id']
+                ];
+            }
+        } else {
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        return $this->asJson([
+            'success' => true,
+            'products' => $productOptions
+        ]);
+    }
+
+    /**
+     * Save the shipping settings.
+     *
+     * @return Response
+     * @throws MissingComponentException
+     * @throws BadRequestHttpException
+     */
+    public function actionSaveShipping(): Response
+    {
+        $this->requirePostRequest();
+
+        $request = Craft::$app->getRequest();
+
+        /** @var Settings $settings */
+        $settings = Vend::$plugin->getSettings();
+        $settings->shippingMap = $request->getBodyParam('shippingMap') ?? $settings->shippingMap;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
