@@ -38,6 +38,17 @@
             }) }}
 
             {{ forms.selectField({
+                label: 'Customer Group'|t,
+                instructions: 'Choose the Customer Group that you want new customers to belong to.'|t,
+                id: 'vend_customerGroupId',
+                name: 'vend_customerGroupId',
+                value: settings.vend_customerGroupId,
+                errors: settings.getErrors('vend_customerGroupId'),
+                options: vendCustomerGroups,
+                required: true,
+            }) }}
+
+            {{ forms.selectField({
                 label: 'User'|t,
                 instructions: 'Choose the User that you want sales to appear under.'|t,
                 id: 'vend_userId',

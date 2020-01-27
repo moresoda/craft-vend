@@ -40,6 +40,11 @@ class Settings extends Model
     /**
      * @var string
      */
+    public $vend_customerGroupId;
+
+    /**
+     * @var string
+     */
     public $vend_userId;
 
     /**
@@ -56,4 +61,8 @@ class Settings extends Model
      * @var string
      */
     public $vend_retailerPaymentTypeId;
+
+
+    // discount product ID (sku:vend-discount)
+    // shipping products
 }

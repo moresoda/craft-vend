@@ -69,6 +69,25 @@ class SettingsController extends Controller
                 $variables['oauthToken'] = $vendApi->oauthToken;
                 $variables['oauthProvider'] = $vendApi->oauthProvider;
 
+                // Customer Groups
+                $vendCustomerGroups = $vendApi->getResponse('2.0/customer_groups');
+                $variables['vendCustomerGroups'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendCustomerGroups['data']))
+                {
+                    foreach ($vendCustomerGroups['data'] as $vendCustomerGroup)
+                    {
+                        $variables['vendCustomerGroups'][] = [
+                            'label' => $vendCustomerGroup['name'],
+                            'value' => $vendCustomerGroup['id']
+                        ];
+                    }
+                }
+
                 // Users
                 $vendUsers = $vendApi->getResponse('2.0/users');
                 $variables['vendUsers'] = [
@@ -169,6 +188,7 @@ class SettingsController extends Controller
 
         $settings = Vend::$plugin->getSettings();
         $settings->vend_registerSales = (bool) ($request->getBodyParam('vend_registerSales') ?? $settings->vend_registerSales);
+        $settings->vend_customerGroupId = $request->getBodyParam('vend_customerGroupId') ?? $settings->vend_customerGroupId;
         $settings->vend_userId = $request->getBodyParam('vend_userId') ?? $settings->vend_userId;
         $settings->vend_outletId = $request->getBodyParam('vend_outletId') ?? $settings->vend_outletId;
         $settings->vend_registerId = $request->getBodyParam('vend_registerId') ?? $settings->vend_registerId;
