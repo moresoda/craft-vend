@@ -25,7 +25,7 @@
     "craftcms/cms": "^3.3.15",
     "craftcms/commerce": "^2.2.8",
     "craftcms/feed-me": "^4.1",
-    "venveo/craft-oauthclient": "^2.1"
+    "venveo/craft-oauthclient": "2.1.2"
   },
   "autoload": {
     "psr-4": {
