@@ -2,6 +2,8 @@
 
 {% import "_includes/forms" as forms %}
 
+{% from "vend/_includes/macros.html" import configWarning %}
+
 {% block content %}
     <h2>{{ "Store Connection"|t('vend') }}</h2>
 
@@ -26,7 +28,25 @@
 
             <h2>{{ "Vend Settings"|t('vend') }}</h2>
 
-            <p>Select the corresponding objects that you want to be used when sending data back to your Vend store.</p>
+            {{ forms.lightswitchField({
+                label: 'Register Sales'|t,
+                instructions: 'Switch this on to send completed orders to Vend.'|t,
+                warning: configWarning("vend_registerSales", "vend"),
+                id: 'vend_registerSales',
+                name: 'vend_registerSales',
+                on: settings.vend_registerSales,
+            }) }}
+
+            {{ forms.selectField({
+                label: 'Customer Group'|t,
+                instructions: 'Choose the Customer Group that you want new customers to belong to.'|t,
+                id: 'vend_customerGroupId',
+                name: 'vend_customerGroupId',
+                value: settings.vend_customerGroupId,
+                errors: settings.getErrors('vend_customerGroupId'),
+                options: vendCustomerGroups,
+                required: true,
+            }) }}
 
             {{ forms.selectField({
                 label: 'User'|t,
@@ -69,6 +89,17 @@
                 value: settings.vend_retailerPaymentTypeId,
                 errors: settings.getErrors('vend_retailerPaymentTypeId'),
                 options: vendPaymentTypes,
+                required: true,
+            }) }}
+
+            {{ forms.selectField({
+                label: 'Discount Product'|t,
+                instructions: 'Choose the Discount product from the list - there should only be one.'|t,
+                id: 'vend_discountProductId',
+                name: 'vend_discountProductId',
+                value: settings.vend_discountProductId,
+                errors: settings.getErrors('vend_discountProductId'),
+                options: vendDiscountProducts,
                 required: true,
             }) }}
 

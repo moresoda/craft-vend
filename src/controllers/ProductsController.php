@@ -10,6 +10,7 @@
 
 namespace angellco\vend\controllers;
 
+use angellco\vend\models\Settings;
 use angellco\vend\Vend;
 use Craft;
 use craft\db\Paginator;
@@ -53,10 +54,12 @@ class ProductsController extends Controller
     {
         $api = Vend::$plugin->api;
         $request = Craft::$app->getRequest();
+        /** @var Settings $settings */
+        $settings = Vend::$plugin->getSettings();
 
         // Set the page size
         $params = [
-            'page_size' => 100,
+            'page_size' => 500,
             'deleted' => false
         ];
 
@@ -81,18 +84,21 @@ class ProductsController extends Controller
         // Format our result data
         $products = [];
         foreach ($response['data'] as $product) {
-            $products[] = [
-                'id' => $product['id'],
-                'name' => $product['name'],
-                'productTypeId' => $product['product_type_id'],
-                'brandId' => $product['brand_id'],
-                'supplierId' => $product['supplier_id'],
-                'hasVariants' => (bool) $product['has_variants'],
-                'isVariant' => (bool) $product['variant_parent_id'],
-                'variantParentId' => $product['variant_parent_id'],
-                'variantName' => $product['variant_name'],
-                'productJson' => Json::encode($product)
-            ];
+            if ($product['id'] && $product['id'] !== $settings->vend_discountProductId) {
+                $products[] = [
+                    'id' => $product['id'],
+                    'name' => $product['name'],
+                    'productTypeId' => $product['product_type_id'],
+                    'brandId' => $product['brand_id'],
+                    'supplierId' => $product['supplier_id'],
+                    'tagIds' => is_array($product['tag_ids']) ? implode(',', $product['tag_ids']) : $product['tag_ids'],
+                    'hasVariants' => (bool)$product['has_variants'],
+                    'isVariant' => (bool)$product['variant_parent_id'],
+                    'variantParentId' => $product['variant_parent_id'],
+                    'variantName' => $product['variant_name'],
+                    'productJson' => Json::encode($product)
+                ];
+            }
         }
 
         // Make our response array
@@ -269,13 +275,20 @@ class ProductsController extends Controller
     {
         $productJson = Json::decode($rawProduct->vendProductJson);
         $options = [];
+        $formattedOptionNames = [];
+        $formattedOptionValues = [];
 
         foreach ($productJson['variant_options'] as $option) {
             $options[] = [
                 'name' => $option['name'],
                 'value' => $option['value']
             ];
+            $formattedOptionNames[] = $option['name'];
+            $formattedOptionValues[] = $option['value'];
         }
+
+        $formattedOptionNames = implode(',', $formattedOptionNames);
+        $formattedOptionValues = implode(',', $formattedOptionValues);
 
         return [
             'id' => $rawProduct->vendProductId,
@@ -283,6 +296,8 @@ class ProductsController extends Controller
             'parentProductId' => $rawProduct->vendProductVariantParentId,
             'default' => $default,
             'inventory' => $rawProduct->vendInventoryCount,
+            'formattedOptionNames' => $formattedOptionNames,
+            'formattedOptionValues' => $formattedOptionValues,
             'options' => $options,
             'productJson' => $productJson
         ];

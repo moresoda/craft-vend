@@ -118,6 +118,32 @@
                     }) }}
                 </td>
             </tr>
+
+            <tr>
+                <th colspan="2"><h2>Vend Tags</h2></th>
+            </tr>
+            <tr>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Included"|t('vend'),
+                        id: 'mapTagsIncluded',
+                        name: 'map[tags][included]',
+                        values: map['tags'] is defined ? map['tags']['included']: null,
+                        options: vendTags,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+                <td>
+                    {{ forms.multiselectField({
+                        label: "Excluded"|t('vend'),
+                        id: 'mapTagsExcluded',
+                        name: 'map[tags][excluded]',
+                        values: map['tags'] is defined ? map['tags']['excluded']: null,
+                        options: vendTags,
+                        class: 'selectize fullwidth',
+                    }) }}
+                </td>
+            </tr>
         </tbody>
     </table>
 {% endblock %}
@@ -128,7 +154,7 @@
     {% endif %}
 
     $(function() {
-        $('#mapProductTypesIncluded, #mapProductTypesExcluded, #mapBrandsIncluded, #mapBrandsExcluded, #mapSuppliersIncluded, #mapSuppliersExcluded').selectize({
+        $('#mapProductTypesIncluded, #mapProductTypesExcluded, #mapBrandsIncluded, #mapBrandsExcluded, #mapSuppliersIncluded, #mapSuppliersExcluded, #mapTagsIncluded, #mapTagsExcluded').selectize({
             dropdownParent: 'body'
         });
     });

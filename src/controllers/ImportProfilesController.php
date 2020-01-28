@@ -143,6 +143,25 @@ class ImportProfilesController extends Controller
             }
         }
 
+        // Tags
+        $vendTags = $vendApi->getResponse('2.0/tags');
+        $variables['vendTags'] = [
+            [
+                'label' => '',
+                'value' => ''
+            ]
+        ];
+        if (isset($vendTags['data']))
+        {
+            foreach ($vendTags['data'] as $vendTag)
+            {
+                $variables['vendTags'][] = [
+                    'label' => $vendTag['name'],
+                    'value' => $vendTag['id']
+                ];
+            }
+        }
+
         // Set up the model
         $variables[ 'brandNewProfile' ] = false;
 

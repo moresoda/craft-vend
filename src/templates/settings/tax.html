@@ -1,0 +1,38 @@
+{% extends "vend/_layouts/settings" %}
+
+{% import "_includes/forms" as forms %}
+
+{% from "vend/_includes/macros.html" import configWarning %}
+
+{% block content %}
+
+    {% if oauthAppMissing %}
+        <p>You are not connected to Vend, <a href="{{ url('oauthclient/apps') }}">please connect to your Vend store</a> first.</p>
+    {% elseif not oauthToken or not oauthProvider %}
+        <p>Your OAuth app needs a token generating, you can do this <a href="{{ url('oauthclient/apps') }}">here</a>.</p>
+    {% endif %}
+
+    {% if not oauthAppMissing and oauthToken and oauthProvider %}
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        <input type="hidden" name="action" value="vend/settings/save-tax">
+        {{ redirectInput('vend/settings/tax') }}
+        {{ csrfInput() }}
+
+        <h2>{{ "Tax Settings"|t('vend') }}</h2>
+
+        {% for taxCategory in taxCategories %}
+            {{ forms.selectField({
+                label: taxCategory.name,
+                instructions: 'Choose the Vend Sales Tax you want to match this tax category to.'|t,
+                id: 'taxMap-'~taxCategory.id,
+                name: 'taxMap['~taxCategory.id~']',
+                value: settings.taxMap and settings.taxMap[taxCategory.id] is defined ? settings.taxMap[taxCategory.id] : null,
+                options: vendTaxes,
+                required: true,
+            }) }}
+        {% endfor %}
+
+        <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
+    </form>
+    {% endif %}
+{% endblock %}

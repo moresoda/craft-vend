@@ -33,6 +33,16 @@ class Settings extends Model
     // =========================================================================
 
     /**
+     * @var bool
+     */
+    public $vend_registerSales = false;
+
+    /**
+     * @var string
+     */
+    public $vend_customerGroupId;
+
+    /**
      * @var string
      */
     public $vend_userId;
@@ -51,4 +61,19 @@ class Settings extends Model
      * @var string
      */
     public $vend_retailerPaymentTypeId;
+
+    /**
+     * @var string
+     */
+    public $vend_discountProductId;
+
+    /**
+     * @var mixed
+     */
+    public $taxMap;
+
+    /**
+     * @var mixed
+     */
+    public $shippingMap;
 }
