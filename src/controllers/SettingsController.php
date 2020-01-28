@@ -337,6 +337,7 @@ class SettingsController extends Controller
             'oauthAppMissing' => false,
             'oauthToken' => null,
             'oauthProvider' => null,
+            'productOptions' => null,
             'settings' => Vend::$plugin->getSettings()
         ];
 
@@ -372,6 +373,12 @@ class SettingsController extends Controller
                 // Get the shipping rules
                 $variables['shippingRules'] = CommercePlugin::getInstance()->getShippingRules()->getAllShippingRules();
 
+                // If we already have a stored product type from a previous save
+                // then use that to populate the saved products
+                if ($variables['settings']->shippingMap && isset($variables['settings']->shippingMap['productType'])) {
+                    $variables['productOptions'] = $this->_getShippingProductOptions($variables['settings']->shippingMap['productType']);
+                }
+
             }
         } catch (\Exception $e) {
             // Suppress the exception
@@ -382,7 +389,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Returns a list of products for a given product type.
+     * XHR method to return a list of products for a given product type.
      *
      * @return Response
      * @throws BadRequestHttpException
@@ -394,10 +401,34 @@ class SettingsController extends Controller
         $this->requireAcceptsJson();
 
         $request = Craft::$app->getRequest();
-        $vendApi = Vend::$plugin->api;
 
         // Get the product type ID
         $typeId = $request->getBodyParam('typeId');
+
+        // Get the relevant product options array
+        $productOptions = $this->_getShippingProductOptions($typeId);
+
+        if (empty($productOptions)) {
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        return $this->asJson([
+            'success' => true,
+            'products' => $productOptions
+        ]);
+    }
+
+    /**
+     * @param $typeId
+     *
+     * @return array
+     * @throws IdentityProviderException
+     */
+    private function _getShippingProductOptions($typeId)
+    {
+        $vendApi = Vend::$plugin->api;
 
         // Get products in that product type
         $vendProducts = $vendApi->getResponse('2.0/search', [
@@ -414,16 +445,9 @@ class SettingsController extends Controller
                     'value' => $vendProduct['id']
                 ];
             }
-        } else {
-            return $this->asJson([
-                'success' => false
-            ]);
         }
 
-        return $this->asJson([
-            'success' => true,
-            'products' => $productOptions
-        ]);
+        return $productOptions;
     }
 
     /**

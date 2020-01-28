@@ -15,22 +15,29 @@
     {% if not oauthAppMissing and oauthToken and oauthProvider %}
         <h2>{{ "Shipping Settings"|t('vend') }}</h2>
 
-        {{ forms.selectField({
-            label: 'Shipping Product Type'|t,
-            instructions: 'Choose the Vend Product Type that contains your shipping products.'|t,
-            id: 'vendShippingProductType',
-            name: 'vendShippingProductType',
-            options: vendProductTypes,
-            required: true,
-        }) }}
-        <div id="vendShippingProductType-spinner" class="spinner left hidden"></div>
-
-        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut id="shippingMapForm"{% if not settings.shippingMap %} class="hidden"{% endif %}>
+        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
             <input type="hidden" name="action" value="vend/settings/save-shipping">
             {{ redirectInput('vend/settings/shipping') }}
             {{ csrfInput() }}
 
-            <div id="shippingMapFields">
+            {% set params = {
+                label: 'Shipping Product Type'|t,
+                instructions: 'Choose the Vend Product Type that contains your shipping products.'|t,
+                id: 'shippingMap-productType',
+                name: 'shippingMap[productType]',
+                options: vendProductTypes,
+                value: settings.shippingMap and settings.shippingMap.productType is defined ? settings.shippingMap.productType : null,
+                required: true,
+            } %}
+
+            {% set input %}
+                {{ forms.select(params) }}
+                <div id="vendShippingProductType-spinner" class="spinner hidden"></div>
+            {% endset %}
+
+            {{ forms.field(params, input) }}
+
+            <div id="shippingMapFields"{% if not settings.shippingMap %} class="hidden"{% endif %}>
                 <hr>
 
                 <p>For each Commerce shipping rule, choose the Vend Shipping Product that you want it to match.</p>
@@ -38,23 +45,24 @@
                 {% for shippingRule in shippingRules %}
                     {{ forms.selectField({
                         label: shippingRule.name,
-                        id: 'shippingMap-'~shippingRule.id,
-                        name: 'shippingMap['~shippingRule.id~']',
-                        value: settings.shippingMap and settings.shippingMap[shippingRule.id] is defined ? settings.shippingMap[shippingRule.id] : null,
+                        id: 'shippingMap-rules-'~shippingRule.id,
+                        name: 'shippingMap[rules]['~shippingRule.id~']',
+                        value: settings.shippingMap and settings.shippingMap.rules[shippingRule.id] is defined ? settings.shippingMap.rules[shippingRule.id] : null,
+                        options: productOptions ? productOptions : [],
+                        required: true,
                     }) }}
                 {% endfor %}
-            </div>
 
-            <br>
-            <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
+                <br>
+                <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
+            </div>
         </form>
     {% endif %}
 {% endblock %}
 
 {% js %}
-    var $productTypeInput = $("#vendShippingProductType"),
+    var $productTypeInput = $("#shippingMap-productType"),
         $spinner = $('#vendShippingProductType-spinner'),
-        $shippingMapForm = $('#shippingMapForm'),
         $shippingMapFields = $('#shippingMapFields');
 
     $productTypeInput.change(function(e) {
@@ -77,7 +85,7 @@
                     }
                 });
 
-                $shippingMapForm.removeClass('hidden');
+                $shippingMapFields.removeClass('hidden');
             }
         });
 
