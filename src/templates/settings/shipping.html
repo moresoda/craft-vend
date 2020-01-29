@@ -40,20 +40,64 @@
             <div id="shippingMapFields"{% if not settings.shippingMap %} class="hidden"{% endif %}>
                 <hr>
 
-                <p>For each Commerce shipping rule, choose the Vend Shipping Product that you want it to match.</p>
+                <p>For each Commerce shipping rule, choose the Vend shipping product and sales tax that you want it to match.</p>
 
-                {% for shippingRule in shippingRules %}
-                    {{ forms.selectField({
-                        label: shippingRule.name,
-                        id: 'shippingMap-rules-'~shippingRule.id,
-                        name: 'shippingMap[rules]['~shippingRule.id~']',
-                        value: settings.shippingMap and settings.shippingMap.rules[shippingRule.id] is defined ? settings.shippingMap.rules[shippingRule.id] : null,
-                        options: productOptions ? productOptions : [],
-                        required: true,
-                    }) }}
-
-                    {# TODO: MATCHING VEND SALES TAX #}
-                {% endfor %}
+                <table class="fullwidth data">
+                    <thead>
+                        <tr>
+                            <th>Shipping Rule</th>
+                            <th>Vend Product</th>
+                            <th>Price Excluding Tax</th>
+                            <th>Vend Sales Tax</th>
+                            <th>Tax Amount</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for shippingRule in shippingRules %}
+                        <tr>
+                            <th>{{ shippingRule.name }}</th>
+                            <td>
+                                {{ forms.selectField({
+                                    id: 'shippingMap-rules-'~shippingRule.id~'-productId',
+                                    name: 'shippingMap[rules]['~shippingRule.id~'][productId]',
+                                    fieldClass: 'products',
+                                    value: settings.shippingMap and settings.shippingMap.rules[shippingRule.id].productId is defined ? settings.shippingMap.rules[shippingRule.id].productId : null,
+                                    options: productOptions ? productOptions : [],
+                                    required: true,
+                                }) }}
+                            </td>
+                            <td class="price">
+                                {% set productPrice = null %}
+                                {% set currencyIso = craft.commerce.paymentCurrencies.getPrimaryPaymentCurrencyIso() %}
+                                {% if settings.shippingMap and settings.shippingMap.rules[shippingRule.id].productPrice is defined %}
+                                    {% set productPrice = settings.shippingMap.rules[shippingRule.id].productPrice %}
+                                    {{ productPrice.excludingTax|commerceCurrency(currencyIso) }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ forms.selectField({
+                                    id: 'shippingMap-rules-'~shippingRule.id~'-taxId',
+                                    name: 'shippingMap[rules]['~shippingRule.id~'][taxId]',
+                                    value: settings.shippingMap and settings.shippingMap.rules[shippingRule.id].taxId is defined ? settings.shippingMap.rules[shippingRule.id].taxId : null,
+                                    options: vendTaxes,
+                                    required: true,
+                                }) }}
+                            </td>
+                            <td class="price">
+                                {% if productPrice %}
+                                    {{ (productPrice.includingTax - productPrice.excludingTax)|commerceCurrency(currencyIso) }}
+                                {% endif %}
+                            </td>
+                            <td class="price">
+                                {% if productPrice %}
+                                    {{ productPrice.includingTax|commerceCurrency(currencyIso) }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
 
                 <br>
                 <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
@@ -79,9 +123,10 @@
             $spinner.addClass('hidden');
             if (textStatus === 'success') {
 
-                $.each($shippingMapFields.find('.field'), function(index, field) {
+                $.each($shippingMapFields.find('.field.products'), function(index, field) {
                     var $select = $(field).find('select');
                     $select.html('');
+                    $(field).parents('tr').find('td.price').text('');
                     for (var i = 0; i < response.products.length; i++) {
                         $('<option value="'+response.products[i].value+'">'+response.products[i].label+'</option>').appendTo($select);
                     }
