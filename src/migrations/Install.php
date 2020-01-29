@@ -316,7 +316,7 @@ class Install extends Migration
                 'type' => PlainText::class,
                 'groupId' => $group->id,
                 'name' => 'Vend Customer Id',
-                'handle' => 'vendCustomerID',
+                'handle' => 'vendCustomerId',
                 'instructions' => '',
                 'searchable' => true,
                 'translationMethod' => Field::TRANSLATION_METHOD_NONE,

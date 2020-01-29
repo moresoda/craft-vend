@@ -203,12 +203,11 @@ class Vend extends Plugin
 
         // Bind to the order complete event so we can register the sale with Vend
         if ($this->getSettings()->vend_registerSales) {
-
             Event::on(
                 Order::class,
                 Order::EVENT_AFTER_COMPLETE_ORDER,
-                static function(Event $e) {
-                    // @var Order $order
+                function(Event $e) {
+                    /** @var Order $order */
                     $order = $e->sender;
                     $this->orders->registerSale($order);
                 }
