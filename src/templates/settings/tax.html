@@ -20,18 +20,34 @@
 
         <h2>{{ "Tax Settings"|t('vend') }}</h2>
 
-        {% for taxCategory in taxCategories %}
-            {{ forms.selectField({
-                label: taxCategory.name,
-                instructions: 'Choose the Vend Sales Tax you want to match this tax category to.'|t,
-                id: 'taxMap-'~taxCategory.id,
-                name: 'taxMap['~taxCategory.id~']',
-                value: settings.taxMap and settings.taxMap[taxCategory.id] is defined ? settings.taxMap[taxCategory.id] : null,
-                options: vendTaxes,
-                required: true,
-            }) }}
-        {% endfor %}
+        <p>For each Commerce tax category, choose the Vend sales tax that you want it to match.</p>
 
+        <table class="fullwidth data">
+            <thead>
+                <tr>
+                    <th>Tax Category</th>
+                    <th>Vend Sales Tax</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for taxCategory in taxCategories %}
+                <tr>
+                    <th>{{ taxCategory.name }}</th>
+                    <td>
+                    {{ forms.selectField({
+                        id: 'taxMap-'~taxCategory.id,
+                        name: 'taxMap['~taxCategory.id~']',
+                        value: settings.taxMap and settings.taxMap[taxCategory.id] is defined ? settings.taxMap[taxCategory.id] : null,
+                        options: vendTaxes,
+                        required: true,
+                    }) }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
         <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
     </form>
     {% endif %}
