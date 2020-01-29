@@ -146,6 +146,35 @@ class Api extends Component
     }
 
     /**
+     * Makes an authenticated PUT request and returns the parsed result.
+     *
+     * @param string                               $uri
+     * @param string|null|resource|StreamInterface $body
+     * @param array                                $headers
+     *
+     * @return mixed
+     * @throws IdentityProviderException
+     */
+    public function putRequest($uri, $body, $headers = [])
+    {
+        $url = $this->oauthProvider->getApiUrl($uri);
+
+        $options = [];
+
+        if ($body) {
+            $options['body'] = $body;
+        }
+
+        if ($headers) {
+            $options['headers'] = $headers;
+        }
+
+        $request = $this->oauthProvider->getAuthenticatedRequest('PUT', $url, $this->oauthToken, $options);
+
+        return $this->oauthProvider->getParsedResponse($request);
+    }
+
+    /**
      * Makes an authenticated DELETE request and returns the parsed result.
      *
      * @param $uri
