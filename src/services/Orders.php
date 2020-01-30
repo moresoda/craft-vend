@@ -15,6 +15,8 @@ use angellco\vend\Vend;
 use Craft;
 use craft\base\Component;
 use craft\commerce\elements\Order;
+use craft\commerce\elements\Variant;
+use craft\commerce\models\LineItem;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\helpers\Json;
 use yii\web\NotFoundHttpException;
@@ -52,6 +54,9 @@ class Orders extends Component
             $vendCustomerId = $customerUser->vendCustomerId;
         }
 
+        /**
+         * First, sort out the customer
+         */
         try {
 
             // Make the Vend customer object
@@ -102,12 +107,105 @@ class Orders extends Component
                 }
             }
 
-            // Make the POST to register_sales: https://docs.vendhq.com/reference/0/spec/register-sales/createupdateregistersale
-            Craft::dd($vendCustomerId);
-
         } catch (\Exception $e) {
+            // TODO: logging
             throw $e;
         }
+
+
+        /**
+         * Second, make the data we need to register a sale
+         */
+
+        // Prep the basic minimum we need to register a sale
+        $data = [
+            'source_id' => $order->number,
+            'register_id' => $settings->vend_registerId,
+            'customer_id' => $vendCustomerId,
+            'user_id' => $settings->vend_userId,
+            'status' => 'CLOSED',
+            'register_sale_products' => []
+        ];
+
+        // Process the line items
+        /** @var LineItem $lineItem */
+        foreach ($order->getLineItems() as $lineItem) {
+
+            /** @var Variant $variant */
+            $variant = $lineItem->getPurchasable();
+
+            // Check we actually got a Commerce Variant - we don’t want to
+            // accidentally support other purchasables for now
+            if (is_a($variant, Variant::class)) {
+
+                // Work out the sales tax ID
+                $taxCategory = $lineItem->getTaxCategory();
+                if (!$taxCategory || !isset($settings->taxMap[$taxCategory->id])) {
+                    continue;
+                }
+                $salesTaxId = $settings->taxMap[$taxCategory->id];
+
+                // Find the amount of tax for one item
+                $taxAmount = bcdiv($lineItem->getTaxIncluded(), $lineItem->qty, 5);
+
+                // Prep the main product data array
+                $productData = [
+                    'product_id' => $variant->vendProductId,
+                    'quantity' => $lineItem->qty,
+                    // Unit price, tax exclusive
+                    'price' => bcsub($lineItem->salePrice, $taxAmount, 5),
+                    // The amount of tax in the unit price
+                    'tax' => $taxAmount,
+                    // The applicable Sales Tax ID
+                    'tax_id' => $salesTaxId
+                ];
+
+                // Add the discount if there is one
+                if ($lineItem->getDiscount()) {
+                    $productData['discount'] = $lineItem->getDiscount();
+                    $productData['price_set'] = 1;
+                }
+
+                // Add the no†e if there is one
+                if ($lineItem->note) {
+                    $productData['attributes'][] = [
+                        'name' => 'line_note',
+                        'value' => $lineItem->note
+                    ];
+                }
+
+                // Finally tack the product onto our main data stack
+                $data['register_sale_products'][] = $productData;
+            }
+
+        }
+
+        // Process the active shipping rule
+        $shippingMethod = $order->getShippingMethod();
+        if ($shippingMethod) {
+            $shippingRule = $shippingMethod->getMatchingShippingRule($order);
+            if ($shippingRule && isset($settings->shippingMap['rules'][$shippingRule->id])) {
+
+                $ruleSettings = $settings->shippingMap['rules'][$shippingRule->id];
+
+                $data['register_sale_products'][] = [
+                    'product_id' => $ruleSettings['productId'],
+                    'quantity' => 1,
+                    'price' => $ruleSettings['productPrice']['excludingTax'],
+                    'tax' => bcsub($ruleSettings['productPrice']['includingTax'], $ruleSettings['productPrice']['excludingTax'], 5),
+                    'tax_id' => $ruleSettings['taxId']
+                ];
+            }
+        }
+
+        // Process discount adjustments
+        // TODO
+
+
+        /**
+         * Finally, send the sale to Vend
+         */
+        Craft::dd($data);
 
     }
 }
