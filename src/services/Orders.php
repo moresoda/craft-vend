@@ -19,6 +19,8 @@ use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\helpers\Json;
+use Throwable;
+use yii\base\InvalidConfigException;
 use yii\web\NotFoundHttpException;
 
 /**
@@ -31,11 +33,14 @@ use yii\web\NotFoundHttpException;
 class Orders extends Component
 {
 
-
     /**
+     * Sends the order to Vend.
+     *
      * @param Order $order
      *
-     * @throws \Throwable
+     * @return mixed
+     * @throws Throwable
+     * @throws InvalidConfigException
      */
     public function registerSale(Order $order) {
         $vendApi = Vend::$plugin->api;
@@ -124,7 +129,15 @@ class Orders extends Component
             'customer_id' => $vendCustomerId,
             'user_id' => $settings->vend_userId,
             'status' => 'CLOSED',
-            'register_sale_products' => []
+            'sale_date' => $order->dateOrdered->format('Y-m-d H:i:s'),
+            'register_sale_products' => [],
+            'register_sale_payments' => [
+                [
+                    'retailer_payment_type_id' => $settings->vend_retailerPaymentTypeId,
+                    'payment_date' => $order->datePaid->format('Y-m-d H:i:s'),
+                    'amount' => $order->getTotalPaid()
+                ]
+            ]
         ];
 
         // Process the line items
@@ -155,19 +168,19 @@ class Orders extends Component
                     // Unit price, tax exclusive
                     'price' => bcsub($lineItem->salePrice, $taxAmount, 5),
                     // The amount of tax in the unit price
-                    'tax' => $taxAmount,
+                    'tax' => $taxAmount, // TODO: check this includes the discount, if not we need to factor it in
                     // The applicable Sales Tax ID
                     'tax_id' => $salesTaxId
                 ];
 
-                // Add the discount if there is one
+                // Add the discount for this line item if there is one
                 if ($lineItem->getDiscount()) {
                     $productData['discount'] = $lineItem->getDiscount();
                     $productData['price_set'] = 1;
                 }
 
                 // Add the no†e if there is one
-                if ($lineItem->note) {
+                if (!empty($lineItem->note)) {
                     $productData['attributes'][] = [
                         'name' => 'line_note',
                         'value' => $lineItem->note
@@ -198,14 +211,26 @@ class Orders extends Component
             }
         }
 
-        // Process discount adjustments
-        // TODO
-
+        // Process order level discount adjustments
+        if ($order->getTotalDiscount()) {
+            $data['register_sale_products'][] = [
+                'product_id' => $settings->vend_discountProductId,
+                'quantity' => -1,
+                'price' => $order->getTotalDiscount(),
+                'price_set' => 1,
+                'tax' => 0,
+                'tax_id' => $settings->vend_noTaxId
+            ];
+        }
 
         /**
          * Finally, send the sale to Vend
          */
-        Craft::dd($data);
-
+        try {
+            return $vendApi->postRequest('register_sales', Json::encode($data));
+        } catch (\Exception $e) {
+            // TODO: logging
+            throw $e;
+        }
     }
 }

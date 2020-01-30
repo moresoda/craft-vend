@@ -188,6 +188,26 @@ class SettingsController extends Controller
                         ];
                     }
                 }
+
+                // Taxes
+                $vendTaxes = $vendApi->getResponse('2.0/taxes');
+                $variables['vendTaxes'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendTaxes['data']))
+                {
+                    foreach ($vendTaxes['data'] as $vendTax)
+                    {
+                        $variables['vendTaxes'][] = [
+                            'label' => $vendTax['name'],
+                            'value' => $vendTax['id']
+                        ];
+                    }
+                }
+
             }
         } catch (\Exception $e) {
             // Suppress the exception
@@ -219,6 +239,7 @@ class SettingsController extends Controller
         $settings->vend_registerId = $request->getBodyParam('vend_registerId') ?? $settings->vend_registerId;
         $settings->vend_retailerPaymentTypeId = $request->getBodyParam('vend_retailerPaymentTypeId') ?? $settings->vend_retailerPaymentTypeId;
         $settings->vend_discountProductId = $request->getBodyParam('vend_discountProductId') ?? $settings->vend_discountProductId;
+        $settings->vend_noTaxId = $request->getBodyParam('vend_noTaxId') ?? $settings->vend_noTaxId;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));

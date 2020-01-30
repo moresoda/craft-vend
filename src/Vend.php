@@ -87,11 +87,6 @@ class Vend extends Plugin
         // Install our event listeners
         $this->installEventListeners();
 
-
-        $order = \craft\commerce\Plugin::getInstance()->getOrders()->getOrderById(14919);
-        $this->orders->registerSale($order);
-
-
 //        // Add our key resources
 //        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
 //        {
