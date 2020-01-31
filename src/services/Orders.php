@@ -212,11 +212,12 @@ class Orders extends Component
         }
 
         // Process order level discount adjustments
-        if ($order->getTotalDiscount()) {
+        $totalDiscount = abs($order->getTotalDiscount());
+        if ($totalDiscount > 0) {
             $data['register_sale_products'][] = [
                 'product_id' => $settings->vend_discountProductId,
                 'quantity' => -1,
-                'price' => $order->getTotalDiscount(),
+                'price' => $totalDiscount,
                 'price_set' => 1,
                 'tax' => 0,
                 'tax_id' => $settings->vend_noTaxId
