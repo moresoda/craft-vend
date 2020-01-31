@@ -89,11 +89,12 @@ class Api extends Component
      *
      * @param       $uri
      * @param array $params
+     * @param bool  $ignoreCache
      *
      * @return mixed
      * @throws IdentityProviderException
      */
-    public function getResponse($uri, $params = [])
+    public function getResponse($uri, $params = [], $ignoreCache = false)
     {
         $cache = Craft::$app->getCache();
 
@@ -101,10 +102,11 @@ class Api extends Component
         $key = 'vend.'.md5($this->oauthToken.$uri.serialize($params));
 
         // Check if we already have a cached version and return it if we do
-        $response = $cache->get($key);
-        if ($response)
-        {
-            return $response;
+        if (!$ignoreCache) {
+            $response = $cache->get($key);
+            if ($response) {
+                return $response;
+            }
         }
 
         // We didn’t so fetch the request and cache it

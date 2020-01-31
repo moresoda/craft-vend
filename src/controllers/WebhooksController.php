@@ -76,7 +76,7 @@ class WebhooksController extends Controller
         $vendApi = Vend::$plugin->api;
 
         // Current webhooks
-        $webhooksResponse = $vendApi->getResponse('webhooks');
+        $webhooksResponse = $vendApi->getResponse('webhooks', [], true);
 
         $variables['webhooks'] = $webhooksResponse;
 
@@ -192,6 +192,9 @@ class WebhooksController extends Controller
 
         return $this->asJson(['success' => true]);
     }
+
+    // Webhook response methods
+    // =========================================================================
 
     /**
      * Responds to the inventory.update webhook.
