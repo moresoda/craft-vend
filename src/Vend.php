@@ -208,7 +208,7 @@ class Vend extends Plugin
                 function(Event $e) {
                     /** @var Order $order */
                     $order = $e->sender;
-                    $this->orders->registerSale($order);
+                    $this->orders->registerSale($order->id);
                 }
             );
         }

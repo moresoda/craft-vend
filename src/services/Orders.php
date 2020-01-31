@@ -36,13 +36,19 @@ class Orders extends Component
     /**
      * Sends the order to Vend.
      *
-     * @param Order $order
+     * @param int $orderId
      *
      * @return mixed
-     * @throws Throwable
      * @throws InvalidConfigException
+     * @throws Throwable
      */
-    public function registerSale(Order $order) {
+    public function registerSale(int $orderId) {
+        // Get the order
+        $order = CommercePlugin::getInstance()->getOrders()->getOrderById($orderId);
+        if (!$order) {
+            return false;
+        }
+
         $vendApi = Vend::$plugin->api;
         $vendCustomerId = null;
         /** @var Settings $settings */
