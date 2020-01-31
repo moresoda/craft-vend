@@ -87,6 +87,9 @@ class Vend extends Plugin
         // Install our event listeners
         $this->installEventListeners();
 
+//        $this->orders->registerSale(14923);
+
+
 //        // Add our key resources
 //        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
 //        {
