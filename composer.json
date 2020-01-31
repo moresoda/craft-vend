@@ -23,7 +23,7 @@
   "require": {
     "php": ">=7.0.0",
     "craftcms/cms": "^3.3.15",
-    "craftcms/commerce": "^2.2.8",
+    "craftcms/commerce": "^2.2.8 || ^3.0.0",
     "craftcms/feed-me": "^4.1",
     "venveo/craft-oauthclient": "2.1.2"
   },
