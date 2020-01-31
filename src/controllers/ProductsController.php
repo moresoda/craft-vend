@@ -83,8 +83,14 @@ class ProductsController extends Controller
 
         // Format our result data
         $products = [];
+
+        $excludedProductIds = [$settings->vend_discountProductId];
+        foreach ($settings->shippingMap['rules'] as $rule) {
+            $excludedProductIds[] = $rule['productId'];
+        }
+
         foreach ($response['data'] as $product) {
-            if ($product['id'] && $product['id'] !== $settings->vend_discountProductId) {
+            if ($product['id'] && !in_array($product['id'], $excludedProductIds, true)) {
                 $products[] = [
                     'id' => $product['id'],
                     'name' => $product['name'],

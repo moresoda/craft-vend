@@ -15,45 +15,101 @@
     {% if not oauthAppMissing and oauthToken and oauthProvider %}
         <h2>{{ "Shipping Settings"|t('vend') }}</h2>
 
-        {{ forms.selectField({
-            label: 'Shipping Product Type'|t,
-            instructions: 'Choose the Vend Product Type that contains your shipping products.'|t,
-            id: 'vendShippingProductType',
-            name: 'vendShippingProductType',
-            options: vendProductTypes,
-            required: true,
-        }) }}
-        <div id="vendShippingProductType-spinner" class="spinner left hidden"></div>
-
-
-        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut id="shippingMapForm" class="hidden">
+        <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
             <input type="hidden" name="action" value="vend/settings/save-shipping">
             {{ redirectInput('vend/settings/shipping') }}
             {{ csrfInput() }}
 
-            <div id="shippingMapFields">
-                {% for shippingRule in shippingRules %}
-                    {{ forms.selectField({
-                        label: shippingRule.name,
-                        instructions: 'Choose the Vend Shipping Product you want to match this shipping rule to.'|t,
-                        id: 'shippingMap-'~shippingRule.id,
-                        name: 'shippingMap['~shippingRule.id~']',
-                        value: settings.shippingMap and settings.shippingMap[shippingRule.id] is defined ? settings.shippingMap[shippingRule.id] : null,
-                    }) }}
-                {% endfor %}
-            </div>
+            {% set params = {
+                label: 'Shipping Product Type'|t,
+                instructions: 'Choose the Vend Product Type that contains your shipping products.'|t,
+                id: 'shippingMap-productType',
+                name: 'shippingMap[productType]',
+                options: vendProductTypes,
+                value: settings.shippingMap and settings.shippingMap.productType is defined ? settings.shippingMap.productType : null,
+                required: true,
+            } %}
 
-            <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
+            {% set input %}
+                {{ forms.select(params) }}
+                <div id="vendShippingProductType-spinner" class="spinner hidden"></div>
+            {% endset %}
+
+            {{ forms.field(params, input) }}
+
+            <div id="shippingMapFields"{% if not settings.shippingMap %} class="hidden"{% endif %}>
+                <hr>
+
+                <p>For each Commerce shipping rule, choose the Vend shipping product and sales tax that you want it to match.</p>
+
+                <table class="fullwidth data">
+                    <thead>
+                        <tr>
+                            <th>Shipping Rule</th>
+                            <th>Vend Product</th>
+                            <th>Price Excluding Tax</th>
+                            <th>Vend Sales Tax</th>
+                            <th>Tax Amount</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for shippingRule in shippingRules %}
+                        <tr>
+                            <th>{{ shippingRule.name }}</th>
+                            <td>
+                                {{ forms.selectField({
+                                    id: 'shippingMap-rules-'~shippingRule.id~'-productId',
+                                    name: 'shippingMap[rules]['~shippingRule.id~'][productId]',
+                                    fieldClass: 'products',
+                                    value: settings.shippingMap and settings.shippingMap.rules[shippingRule.id].productId is defined ? settings.shippingMap.rules[shippingRule.id].productId : null,
+                                    options: productOptions ? productOptions : [],
+                                    required: true,
+                                }) }}
+                            </td>
+                            <td class="price">
+                                {% set productPrice = null %}
+                                {% set currencyIso = craft.commerce.paymentCurrencies.getPrimaryPaymentCurrencyIso() %}
+                                {% if settings.shippingMap and settings.shippingMap.rules[shippingRule.id].productPrice is defined %}
+                                    {% set productPrice = settings.shippingMap.rules[shippingRule.id].productPrice %}
+                                    {{ productPrice.excludingTax|commerceCurrency(currencyIso) }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ forms.selectField({
+                                    id: 'shippingMap-rules-'~shippingRule.id~'-taxId',
+                                    name: 'shippingMap[rules]['~shippingRule.id~'][taxId]',
+                                    value: settings.shippingMap and settings.shippingMap.rules[shippingRule.id].taxId is defined ? settings.shippingMap.rules[shippingRule.id].taxId : null,
+                                    options: vendTaxes,
+                                    required: true,
+                                }) }}
+                            </td>
+                            <td class="price">
+                                {% if productPrice %}
+                                    {{ (productPrice.includingTax - productPrice.excludingTax)|commerceCurrency(currencyIso) }}
+                                {% endif %}
+                            </td>
+                            <td class="price">
+                                {% if productPrice %}
+                                    {{ productPrice.includingTax|commerceCurrency(currencyIso) }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+                <br>
+                <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
+            </div>
         </form>
     {% endif %}
 {% endblock %}
 
-
 {% js %}
-    var $productTypeInput = $("#vendShippingProductType"),
+    var $productTypeInput = $("#shippingMap-productType"),
         $spinner = $('#vendShippingProductType-spinner'),
-        $shippingMapForm = $('shippingMapForm'),
-        $shippingMapFields = $('shippingMapFields');
+        $shippingMapFields = $('#shippingMapFields');
 
     $productTypeInput.change(function(e) {
         var typeId = $(this).val();
@@ -67,14 +123,16 @@
             $spinner.addClass('hidden');
             if (textStatus === 'success') {
 
-                $.each($shippingMapFields.find('.field'), function(index, $field) {
-                    // TODO - fix this here
-                    $.each(response.products, function(index2, product) {
-                        $('<option value="'+product.value+'">'+product.label+'</option>').appendTo($field.find('select'));
-                    });
+                $.each($shippingMapFields.find('.field.products'), function(index, field) {
+                    var $select = $(field).find('select');
+                    $select.html('');
+                    $(field).parents('tr').find('td.price').text('');
+                    for (var i = 0; i < response.products.length; i++) {
+                        $('<option value="'+response.products[i].value+'">'+response.products[i].label+'</option>').appendTo($select);
+                    }
                 });
 
-                $shippingMapForm.removeClass('hidden');
+                $shippingMapFields.removeClass('hidden');
             }
         });
 

@@ -68,6 +68,11 @@ class Settings extends Model
     public $vend_discountProductId;
 
     /**
+     * @var string
+     */
+    public $vend_noTaxId;
+
+    /**
      * @var mixed
      */
     public $taxMap;

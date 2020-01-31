@@ -103,6 +103,17 @@
                 required: true,
             }) }}
 
+            {{ forms.selectField({
+                label: 'No Tax'|t,
+                instructions: 'Choose the No Tax option from the list - there should only be one.'|t,
+                id: 'vend_noTaxId',
+                name: 'vend_noTaxId',
+                value: settings.vend_noTaxId,
+                errors: settings.getErrors('vend_noTaxId'),
+                options: vendTaxes,
+                required: true,
+            }) }}
+
             <input type="submit" class="btn submit" value="{{ 'Save'|t('vend') }}">
         </form>
     {% endif %}

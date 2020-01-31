@@ -21,7 +21,6 @@ use craft\commerce\elements\Order;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
-use craft\web\Controller;
 use craft\web\UrlManager;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -87,6 +86,9 @@ class Vend extends Plugin
 
         // Install our event listeners
         $this->installEventListeners();
+
+//        $this->orders->registerSale(14923);
+
 
 //        // Add our key resources
 //        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
@@ -203,14 +205,13 @@ class Vend extends Plugin
 
         // Bind to the order complete event so we can register the sale with Vend
         if ($this->getSettings()->vend_registerSales) {
-
             Event::on(
                 Order::class,
                 Order::EVENT_AFTER_COMPLETE_ORDER,
-                static function(Event $e) {
-                    // @var Order $order
+                function(Event $e) {
+                    /** @var Order $order */
                     $order = $e->sender;
-                    $this->orders->registerSale($order);
+                    $this->orders->registerSale($order->id);
                 }
             );
         }

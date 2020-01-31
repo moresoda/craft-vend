@@ -188,6 +188,26 @@ class SettingsController extends Controller
                         ];
                     }
                 }
+
+                // Taxes
+                $vendTaxes = $vendApi->getResponse('2.0/taxes');
+                $variables['vendTaxes'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendTaxes['data']))
+                {
+                    foreach ($vendTaxes['data'] as $vendTax)
+                    {
+                        $variables['vendTaxes'][] = [
+                            'label' => $vendTax['name'],
+                            'value' => $vendTax['id']
+                        ];
+                    }
+                }
+
             }
         } catch (\Exception $e) {
             // Suppress the exception
@@ -219,6 +239,7 @@ class SettingsController extends Controller
         $settings->vend_registerId = $request->getBodyParam('vend_registerId') ?? $settings->vend_registerId;
         $settings->vend_retailerPaymentTypeId = $request->getBodyParam('vend_retailerPaymentTypeId') ?? $settings->vend_retailerPaymentTypeId;
         $settings->vend_discountProductId = $request->getBodyParam('vend_discountProductId') ?? $settings->vend_discountProductId;
+        $settings->vend_noTaxId = $request->getBodyParam('vend_noTaxId') ?? $settings->vend_noTaxId;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
@@ -337,6 +358,7 @@ class SettingsController extends Controller
             'oauthAppMissing' => false,
             'oauthToken' => null,
             'oauthProvider' => null,
+            'productOptions' => null,
             'settings' => Vend::$plugin->getSettings()
         ];
 
@@ -369,8 +391,33 @@ class SettingsController extends Controller
                     }
                 }
 
+                // Get taxes from the Vend API
+                $vendTaxes = $vendApi->getResponse('2.0/taxes');
+                $variables['vendTaxes'] = [
+                    [
+                        'label' => '',
+                        'value' => ''
+                    ]
+                ];
+                if (isset($vendTaxes['data']))
+                {
+                    foreach ($vendTaxes['data'] as $vendTax)
+                    {
+                        $variables['vendTaxes'][] = [
+                            'label' => $vendTax['name'],
+                            'value' => $vendTax['id']
+                        ];
+                    }
+                }
+
                 // Get the shipping rules
                 $variables['shippingRules'] = CommercePlugin::getInstance()->getShippingRules()->getAllShippingRules();
+
+                // If we already have a stored product type from a previous save
+                // then use that to populate the saved products
+                if ($variables['settings']->shippingMap && isset($variables['settings']->shippingMap['productType'])) {
+                    $variables['productOptions'] = $this->_getShippingProductOptions($variables['settings']->shippingMap['productType']);
+                }
 
             }
         } catch (\Exception $e) {
@@ -382,7 +429,7 @@ class SettingsController extends Controller
     }
 
     /**
-     * Returns a list of products for a given product type.
+     * XHR method to return a list of products for a given product type.
      *
      * @return Response
      * @throws BadRequestHttpException
@@ -394,13 +441,35 @@ class SettingsController extends Controller
         $this->requireAcceptsJson();
 
         $request = Craft::$app->getRequest();
-        $vendApi = Vend::$plugin->api;
 
         // Get the product type ID
         $typeId = $request->getBodyParam('typeId');
 
+        // Get the relevant product options array
+        $productOptions = $this->_getShippingProductOptions($typeId);
+
+        if (empty($productOptions)) {
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        return $this->asJson([
+            'success' => true,
+            'products' => $productOptions
+        ]);
+    }
+
+    /**
+     * @param $typeId
+     *
+     * @return array
+     * @throws IdentityProviderException
+     */
+    private function _getShippingProductOptions($typeId): array
+    {
         // Get products in that product type
-        $vendProducts = $vendApi->getResponse('2.0/search', [
+        $vendProducts = Vend::$plugin->api->getResponse('2.0/search', [
             'type' => 'products',
             'product_type_id' => $typeId
         ]);
@@ -414,24 +483,18 @@ class SettingsController extends Controller
                     'value' => $vendProduct['id']
                 ];
             }
-        } else {
-            return $this->asJson([
-                'success' => false
-            ]);
         }
 
-        return $this->asJson([
-            'success' => true,
-            'products' => $productOptions
-        ]);
+        return $productOptions;
     }
 
     /**
      * Save the shipping settings.
      *
      * @return Response
-     * @throws MissingComponentException
      * @throws BadRequestHttpException
+     * @throws IdentityProviderException
+     * @throws MissingComponentException
      */
     public function actionSaveShipping(): Response
     {
@@ -442,6 +505,24 @@ class SettingsController extends Controller
         /** @var Settings $settings */
         $settings = Vend::$plugin->getSettings();
         $settings->shippingMap = $request->getBodyParam('shippingMap') ?? $settings->shippingMap;
+
+        // Get the products we are storing afresh so we can keep a copy of their
+        // pricing data
+        $vendApi = Vend::$plugin->api;
+        $rules = $settings->shippingMap['rules'];
+        foreach ($rules as $ruleId => $rule) {
+            $productId = $rule['productId'];
+            $product = $vendApi->getResponse("2.0/products/{$productId}");
+
+            $rule['productPrice'] = [
+                'includingTax' => $product['data']['price_including_tax'],
+                'excludingTax' => $product['data']['price_excluding_tax']
+            ];
+
+            $rules[$ruleId] = $rule;
+        }
+
+        $settings->shippingMap['rules'] = $rules;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
