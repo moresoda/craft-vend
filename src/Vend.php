@@ -118,10 +118,7 @@ class Vend extends Plugin
     /**
      * Returns the settings page response.
      *
-     * @return mixed|Response
-     * @throws LoaderError
-     * @throws RuntimeError
-     * @throws SyntaxError
+     * @return \craft\web\Response|mixed|\yii\console\Response|Response
      */
     public function getSettingsResponse()
     {
@@ -174,9 +171,10 @@ class Vend extends Plugin
                 $event->rules['vend/settings/webhooks'] = 'vend/webhooks/index';
                 $event->rules['vend/settings/webhooks/new'] = 'vend/webhooks/edit';
 
-                $event->rules['vend/settings/general'] = 'vend/settings/edit';
-                $event->rules['vend/settings/tax'] = 'vend/settings/edit-tax';
+                $event->rules['vend/settings/feed-me'] = 'vend/settings/feed-me';
                 $event->rules['vend/settings/shipping'] = 'vend/settings/edit-shipping';
+                $event->rules['vend/settings/tax'] = 'vend/settings/edit-tax';
+                $event->rules['vend/settings/general'] = 'vend/settings/edit';
             }
         );
 

@@ -1,0 +1,73 @@
+{% extends "vend/_layouts/settings" %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <h2>{{ "Feed Me"|t('vend') }}</h2>
+
+    <p>To set up your feeds below is a table of all the applicable feed URLs with notes on what they do.</p>
+
+    <p>You should set up at least 3 feeds, the first to pull in the main product database from Vend into the <a href="{{ cpUrl('entries/vendProducts') }}">Vend Products</a> section. The second to do the same but with the Vend inventory data. Finally you should then set up at least one feed to import that data into Commerce as products. You can also use <a href="{{ cpUrl('vend/settings/import-profiles') }}">Import Profiles</a> to filter the main product database allowing you to import sub-sets of the data into different Commerce product types.</p>
+
+    <table class="data fullwidth">
+        <thead>
+            <tr>
+                <th scope="col">Feed Purpose</th>
+                <th scope="col">Feed URL</th>
+                <th scope="col" style="width: 50%;">Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Vend products</td>
+                <td>
+                    {{ forms.textField({
+                        class: 'code',
+                        value: actionUrl('vend/products/list'),
+                    }) }}
+                </td>
+                <td>This feed should import all products from Vend into the dedicated <a href="{{ cpUrl('entries/vendProducts') }}">Vend Products</a> section as entries.</td>
+            </tr>
+            <tr>
+                <td>Vend inventory</td>
+                <td>
+                    {{ forms.textField({
+                        class: 'code',
+                        value: actionUrl('vend/products/inventory'),
+                    }) }}
+                </td>
+                <td>This feed is for specifically importing the inventory of all Vend products into the dedicated Vend Products section.</td>
+            </tr>
+            <tr>
+                <td>Commerce products</td>
+                <td>
+                    {{ forms.textField({
+                        class: 'code',
+                        value: actionUrl('vend/products/import'),
+                    }) }}
+                </td>
+                <td>This is your main Commerce product import feed - it takes the entries created from the first two feeds and creates products in Commerce.</td>
+            </tr>
+
+            {% if importProfiles %}
+
+                <tr>
+                    <th colspan="3">Commerce product feeds for each import profile</th>
+                </tr>
+
+                {% for importProfile in importProfiles %}
+                    <tr>
+                        <td>{{ importProfile.name }}</td>
+                        <td>
+                            {{ forms.textField({
+                                class: 'code',
+                                value: actionUrl('vend/products/import', {profile: importProfile.handle}),
+                            }) }}
+                        </td>
+                        <td>Specific Commerce product import for the {{ importProfile.name }} import profile.</td>
+                    </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}

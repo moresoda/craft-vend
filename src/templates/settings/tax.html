@@ -34,13 +34,13 @@
                 <tr>
                     <th>{{ taxCategory.name }}</th>
                     <td>
-                    {{ forms.selectField({
-                        id: 'taxMap-'~taxCategory.id,
-                        name: 'taxMap['~taxCategory.id~']',
-                        value: settings.taxMap and settings.taxMap[taxCategory.id] is defined ? settings.taxMap[taxCategory.id] : null,
-                        options: vendTaxes,
-                        required: true,
-                    }) }}
+                        {{ forms.selectField({
+                            id: 'taxMap-'~taxCategory.id,
+                            name: 'taxMap['~taxCategory.id~']',
+                            value: settings.taxMap and settings.taxMap[taxCategory.id] is defined ? settings.taxMap[taxCategory.id] : null,
+                            options: vendTaxes,
+                            required: true,
+                        }) }}
                     </td>
                 </tr>
             {% endfor %}
