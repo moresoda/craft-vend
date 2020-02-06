@@ -248,7 +248,7 @@ class WebhooksController extends Controller
 
         $elements = Craft::$app->getElements();
 
-        $entry->vendInventoryCount = $inventoryAmount;
+        $entry->setFieldValue('vendInventoryCount', $inventoryAmount);
         if (!$elements->saveElement($entry)) {
             // TODO logging
             return $this->asJson([
