@@ -541,4 +541,18 @@ class SettingsController extends Controller
         return $this->redirectToPostedUrl();
     }
 
+    /**
+     * Loads the Feed Me settings page, which is just informational.
+     *
+     * @return Response
+     */
+    public function actionFeedMe(): Response
+    {
+        $variables = [
+            'importProfiles' => Vend::$plugin->importProfiles->getAll()
+        ];
+
+        return $this->renderTemplate('vend/settings/feedme', $variables);
+    }
+
 }

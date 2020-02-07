@@ -26,7 +26,8 @@ use Psr\Http\Message\ResponseInterface;
  * @package   Vend
  * @since     2.0.0
  */
-class Vend extends AbstractProvider {
+class Vend extends AbstractProvider
+{
 
     use BearerAuthorizationTrait;
 
