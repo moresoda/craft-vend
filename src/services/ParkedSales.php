@@ -188,7 +188,7 @@ class ParkedSales extends Component
         $transaction = $db->beginTransaction();
         try {
             $db->createCommand()
-                ->delete('{{%vend_importprofiles}}', ['id' => $id])
+                ->delete('{{%vend_parkedsales}}', ['id' => $id])
                 ->execute();
 
             $transaction->commit();
