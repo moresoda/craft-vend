@@ -110,17 +110,31 @@ class Orders extends Component
                     $vendCustomerId = $customerResult['data']['id'];
                     $customerUser->setFieldValue('vendCustomerId', $vendCustomerId);
                     Craft::$app->getElements()->saveElement($customerUser);
+
+                    Craft::info(
+                        'New customer created.',
+                        __METHOD__
+                    );
                 } else {
                     // There is a customer, but we could update it couldn’t we now
                     $vendApi->putRequest("2.0/customers/{$vendCustomerId}", Json::encode($vendCustomerObject), [
                         'Content-Type' => 'application/json',
                     ]);
+
+                    Craft::info(
+                        'Customer updated.',
+                        __METHOD__
+                    );
                 }
             }
 
         } catch (\Exception $e) {
-            // TODO: logging
-            throw $e;
+            Craft::error(
+                'Error creating customer for order: '.$orderId.' - '.$e->getMessage(),
+                __METHOD__
+            );
+
+            // TODO: park sale
         }
 
 
@@ -230,16 +244,25 @@ class Orders extends Component
             ];
         }
 
-//        Craft::dd($data);
-
         /**
          * Finally, send the sale to Vend
          */
         try {
-            return $vendApi->postRequest('register_sales', Json::encode($data));
+            $response = $vendApi->postRequest('register_sales', Json::encode($data));
+
+            Craft::info(
+                'Sale registered with Vend.',
+                __METHOD__
+            );
+
+            return $response;
         } catch (\Exception $e) {
-            // TODO: logging
-            throw $e;
+            Craft::error(
+                'Error registering sale with Vend for order: '.$orderId.' - '.$e->getMessage(),
+                __METHOD__
+            );
+
+            // TODO: park sale
         }
     }
 }
