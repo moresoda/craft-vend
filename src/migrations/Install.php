@@ -112,7 +112,7 @@ class Install extends Migration
                 [
                     'id' => $this->primaryKey(),
                     'orderId' => $this->integer()->notNull(),
-                    'retryAfter' => $this->dateTime()->notNull(),
+                    'retryAfter' => $this->dateTime(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),

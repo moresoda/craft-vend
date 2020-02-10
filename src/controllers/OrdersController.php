@@ -48,10 +48,9 @@ class OrdersController extends Controller
 
         if (!Vend::$plugin->orders->registerSale($orderId)) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t register sale with Vend.'));
-            return null;
+        } else {
+            Craft::$app->getSession()->setNotice(Craft::t('vend', 'Sale registered with Vend.'));
         }
-
-        Craft::$app->getSession()->setNotice(Craft::t('vend', 'Sale registered with Vend.'));
 
         return $this->redirect('vend/parked-sales');
     }

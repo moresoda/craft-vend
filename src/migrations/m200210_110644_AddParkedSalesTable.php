@@ -22,7 +22,7 @@ class m200210_110644_AddParkedSalesTable extends Migration
                 [
                     'id' => $this->primaryKey(),
                     'orderId' => $this->integer()->notNull(),
-                    'retryAfter' => $this->dateTime()->notNull(),
+                    'retryAfter' => $this->dateTime(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),

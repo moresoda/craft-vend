@@ -14,7 +14,10 @@ use angellco\vend\models\ParkedSale;
 use angellco\vend\records\ParkedSale as ParkedSaleRecord;
 use Craft;
 use craft\base\Component;
+use craft\commerce\elements\Order;
 use craft\db\Query;
+use craft\helpers\DateTimeHelper;
+use DateTime;
 use Throwable;
 use yii\base\Exception;
 
@@ -220,6 +223,38 @@ class ParkedSales extends Component
             throw $e;
         }
     }
+
+    /**
+     * @param Order      $order
+     * @param \Exception $e
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function createFromOrder(Order $order, \Exception $e = null): bool
+    {
+        $model = new ParkedSale();
+        $model->orderId = $order->id;
+
+        // If it was a rate limit, then set the retry time on the model
+        if ($e !== null) {
+            $response = $e->getResponse();
+            if ($response->getStatusCode() === 429) {
+                $body = $response->getBody();
+                $model->retryAfter = new DateTime($body['retry-after'], Craft::$app->getTimeZone());
+            }
+        }
+
+        if (!$this->save($model)) {
+            Craft::error("Couldn’t park the sale for Order {$order->id}", __METHOD__);
+            return true;
+        }
+
+        // TODO send email
+
+        return true;
+    }
+
 
     // Private Methods
     // =========================================================================

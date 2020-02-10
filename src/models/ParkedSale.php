@@ -74,7 +74,6 @@ class ParkedSale extends Model
     {
         $rules = parent::rules();
         $rules[] = [['id', 'orderId'], 'number', 'integerOnly' => true];
-        $rules[] = [['retryAfter'], DateTimeValidator::class, 'targetClass' => __CLASS__];
         return $rules;
     }
 }
