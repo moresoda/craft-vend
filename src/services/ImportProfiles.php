@@ -42,7 +42,7 @@ class ImportProfiles extends Component
     // Constants
     // =========================================================================
 
-    public const CONFIG_PROFILES_KEY = 'vend.importProfiles';
+    const CONFIG_PROFILES_KEY = 'vend.importProfiles';
 
     // Private Properties
     // =========================================================================

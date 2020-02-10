@@ -11,6 +11,7 @@
 namespace angellco\vend\controllers;
 
 use craft\web\Controller;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -22,16 +23,6 @@ use yii\web\Response;
  */
 class ParkedSalesController extends Controller
 {
-    // Protected Properties
-    // =========================================================================
-
-    /**
-     * @var    bool|array Allows anonymous access to this controller's actions.
-     *         The actions must be in 'kebab-case'
-     * @access protected
-     */
-    protected $allowAnonymous = false;
-
     // Public Methods
     // =========================================================================
 
@@ -39,7 +30,7 @@ class ParkedSalesController extends Controller
      * Import profiles index page.
      *
      * @return Response
-     * @throws \yii\web\ForbiddenHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionIndex(): Response
     {
