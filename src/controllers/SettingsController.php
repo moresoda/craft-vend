@@ -16,6 +16,7 @@ use Craft;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\errors\MissingComponentException;
 use craft\web\Controller;
+use Exception;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
@@ -61,6 +62,16 @@ class SettingsController extends Controller
             'oauthProvider' => null,
             'settings' => Vend::$plugin->getSettings()
         ];
+
+        // Commerce emails
+        $commerceEmails = CommercePlugin::getInstance()->getEmails()->getAllEmails();
+        $variables['commerceEmails'] = [];
+        foreach ($commerceEmails as $commerceEmail) {
+            $variables['commerceEmails'][] = [
+                'label' => $commerceEmail->name,
+                'value' => $commerceEmail->uid
+            ];
+        }
 
         // Get the OAuth token and provider so we know we are connected
         try {
@@ -209,7 +220,7 @@ class SettingsController extends Controller
                 }
 
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Suppress the exception
             $variables['oauthAppMissing'] = true;
         }
@@ -233,6 +244,7 @@ class SettingsController extends Controller
         /** @var Settings $settings */
         $settings = Vend::$plugin->getSettings();
         $settings->vend_registerSales = (bool) ($request->getBodyParam('vend_registerSales') ?? $settings->vend_registerSales);
+        $settings->commerce_parkedSaleEmailId = ($request->getBodyParam('commerce_parkedSaleEmailId') ?? $settings->commerce_parkedSaleEmailId);
         $settings->vend_customerGroupId = $request->getBodyParam('vend_customerGroupId') ?? $settings->vend_customerGroupId;
         $settings->vend_userId = $request->getBodyParam('vend_userId') ?? $settings->vend_userId;
         $settings->vend_outletId = $request->getBodyParam('vend_outletId') ?? $settings->vend_outletId;
@@ -305,7 +317,7 @@ class SettingsController extends Controller
                 $variables['taxCategories'] = CommercePlugin::getInstance()->getTaxCategories()->getAllTaxCategories();
 
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Suppress the exception
             $variables['oauthAppMissing'] = true;
         }
@@ -420,7 +432,7 @@ class SettingsController extends Controller
                 }
 
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Suppress the exception
             $variables['oauthAppMissing'] = true;
         }

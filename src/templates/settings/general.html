@@ -38,6 +38,17 @@
             }) }}
 
             {{ forms.selectField({
+                label: 'Parked Sale Email'|t,
+                instructions: 'Choose the email you want to use when sending notifications that a parked sale has been raised.'|t,
+                id: 'commerce_parkedSaleEmailId',
+                name: 'commerce_parkedSaleEmailId',
+                value: settings.commerce_parkedSaleEmailId,
+                errors: settings.getErrors('commerce_parkedSaleEmailId'),
+                options: commerceEmails,
+                required: true,
+            }) }}
+
+            {{ forms.selectField({
                 label: 'Customer Group'|t,
                 instructions: 'Choose the Customer Group that you want new customers to belong to.'|t,
                 id: 'vend_customerGroupId',

@@ -12,11 +12,14 @@ namespace angellco\vend\services;
 
 use angellco\vend\models\ParkedSale;
 use angellco\vend\records\ParkedSale as ParkedSaleRecord;
+use angellco\vend\Vend;
 use Craft;
 use craft\base\Component;
+use craft\commerce\db\Table as CommerceTables;
 use craft\commerce\elements\Order;
+use craft\commerce\queue\jobs\SendEmail;
 use craft\db\Query;
-use craft\helpers\DateTimeHelper;
+use craft\helpers\Db;
 use DateTime;
 use Throwable;
 use yii\base\Exception;
@@ -250,7 +253,16 @@ class ParkedSales extends Component
             return true;
         }
 
-        // TODO send email
+        // Send the email
+        $settings = Vend::$plugin->getSettings();
+        $commerce_parkedSaleEmailId = Db::idByUid(CommerceTables::EMAILS, $settings->commerce_parkedSaleEmailId);
+        $orderHistories = $order->getHistories();
+        Craft::$app->getQueue()->push(new SendEmail([
+            'orderId' => $order->id,
+            'commerceEmailId' => $commerce_parkedSaleEmailId,
+            'orderHistoryId' => count($orderHistories) > 0 ?? $orderHistories[0]->id,
+            'orderData' => $order->toArray()
+        ]));
 
         return true;
     }
