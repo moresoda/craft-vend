@@ -198,6 +198,29 @@ class ParkedSales extends Component
         }
     }
 
+    /**
+     * Deletes a parked sale by its order ID.
+     *
+     * @param int $orderId
+     *
+     * @throws Throwable
+     */
+    public function deleteParkedSalesByOrderId(int $orderId)
+    {
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $db->createCommand()
+                ->delete('{{%vend_parkedsales}}', ['orderId' => $orderId])
+                ->execute();
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
+
     // Private Methods
     // =========================================================================
 

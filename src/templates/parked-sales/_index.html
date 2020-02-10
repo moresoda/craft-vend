@@ -45,9 +45,9 @@
                     <td data-title="{{ 'Total'|t }}">{{ parkedSale.order.totalPrice|currency(parkedSale.order.currency) }}</td>
                     <td data-title="{{ 'Date'|t }}"><span title="{{ parkedSale.order.dateOrdered.localeDate() }} {{ parkedSale.order.dateOrdered.localeTime() }}">{{ parkedSale.order.dateOrdered.uiTimestamp() }}</span></td>
                     <td class="thin">
-                        <form action="{{ actionUrl('vend/register-sales/send') }}" method="post">
+                        <form action="{{ actionUrl('vend/orders/send') }}" method="post">
                             {{ getCsrfInput() }}
-                            <a class="formsubmit btn small submit" data-action="vend/register-sales/send" data-param="id" data-value="{{ parkedSale.order.id }}" data-redirect="{{ url('vend') }}">{{ 'Register Sale'|t('vend') }}</a>
+                            <a class="formsubmit btn small submit" data-action="vend/orders/send" data-param="id" data-value="{{ parkedSale.order.id }}">{{ 'Register Sale'|t('vend') }}</a>
                         </form>
                     </td>
                     <td class="thin"><a class="delete icon" title="{{ 'Delete'|t('app') }}" role="button"></a></td>
