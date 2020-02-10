@@ -11,9 +11,15 @@
 namespace angellco\vend\models;
 
 use craft\base\Model;
+use craft\commerce\elements\Order;
+use craft\commerce\Plugin as CommercePlugin;
+use craft\validators\DateTimeValidator;
+use DateTime;
 
 /**
  * ParkedSale model.
+ *
+ * @property Order|null $order
  *
  * @author    Angell & Co
  * @package   Vend
@@ -21,5 +27,54 @@ use craft\base\Model;
  */
 class ParkedSale extends Model
 {
+    // Public Properties
+    // =========================================================================
 
+    /**
+     * @var int ID
+     */
+    public $id;
+
+    /**
+     * @var int Order ID
+     */
+    public $orderId;
+
+    /**
+     * @var DateTime|null
+     */
+    public $retryAfter;
+
+
+    // Properties
+    // =========================================================================
+
+    private $_order;
+
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @return Order|null
+     */
+    public function getOrder()
+    {
+        if (!$this->_order) {
+            $this->_order = CommercePlugin::getInstance()->getOrders()->getOrderById($this->orderId);
+        }
+
+        return $this->_order;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        $rules = parent::rules();
+        $rules[] = [['id', 'orderId'], 'number', 'integerOnly' => true];
+        $rules[] = [['retryAfter'], DateTimeValidator::class, 'targetClass' => __CLASS__];
+        return $rules;
+    }
 }

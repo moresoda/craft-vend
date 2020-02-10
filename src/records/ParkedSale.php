@@ -21,7 +21,6 @@ use yii\db\ActiveQueryInterface;
  * @property int                  $orderId    Order ID
  * @property ActiveQueryInterface $order      The Order element
  * @property string               $retryAfter Retry after date time
- * @property string               $uid        Uid
  *
  * @author    Angell & Co
  * @package   Vend

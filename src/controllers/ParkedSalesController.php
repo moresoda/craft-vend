@@ -10,7 +10,11 @@
 
 namespace angellco\vend\controllers;
 
+use angellco\vend\Vend;
+use Craft;
 use craft\web\Controller;
+use Throwable;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
@@ -27,7 +31,7 @@ class ParkedSalesController extends Controller
     // =========================================================================
 
     /**
-     * Import profiles index page.
+     * Parked sales index page.
      *
      * @return Response
      * @throws ForbiddenHttpException
@@ -35,12 +39,29 @@ class ParkedSalesController extends Controller
     public function actionIndex(): Response
     {
         $this->requireAdmin();
-        // TODO
-//        $parkedSales = Vend::$plugin->parkedSales->getAll();
-        $parkedSales = [];
+        $parkedSales = Vend::$plugin->parkedSales->getAll();
 
         return $this->renderTemplate('vend/parked-sales/_index', [
             'parkedSales' => $parkedSales
+        ]);
+    }
+
+    /**
+     * Deletes a parked sale.
+     *
+     * @return Response
+     * @throws BadRequestHttpException
+     * @throws Throwable
+     */
+    public function actionDelete(): Response
+    {
+        $this->requirePostRequest();
+        $this->requireAcceptsJson();
+
+        $parkedSaleId = Craft::$app->request->getRequiredBodyParam('id');
+        Vend::$plugin->parkedSales->deleteParkedSaleById($parkedSaleId);
+        return $this->asJson([
+            'success' => true
         ]);
     }
 }

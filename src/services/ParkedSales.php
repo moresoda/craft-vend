@@ -12,8 +12,11 @@ namespace angellco\vend\services;
 
 use angellco\vend\models\ParkedSale;
 use angellco\vend\records\ParkedSale as ParkedSaleRecord;
+use Craft;
 use craft\base\Component;
 use craft\db\Query;
+use Throwable;
+use yii\base\Exception;
 
 /**
  * Parked Sales service.
@@ -134,6 +137,66 @@ class ParkedSales extends Component
         return $this->_parkedSalesById[$parkedSaleId] = $this->_createParkedSaleFromRecord($parkedSaleRecord);
     }
 
+    /**
+     * Saves a parked sale.
+     *
+     * @param ParkedSale $model
+     * @param bool       $runValidation
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function save(ParkedSale $model, bool $runValidation = true): bool
+    {
+        if ($model->id) {
+            $record = ParkedSaleRecord::findOne($model->id);
+
+            if (!$record) {
+                throw new Exception("No parked order exists with the ID “{$model->id}”");
+            }
+        } else {
+            $record = new ParkedSaleRecord();
+        }
+
+        if ($runValidation && !$model->validate()) {
+            Craft::info('Parked Sale not saved due to validation error.', __METHOD__);
+            return false;
+        }
+
+        $record->orderId = $model->orderId;
+        $record->retryAfter = $model->retryAfter;
+
+        // Save it!
+        $record->save(false);
+
+        // Now that we have a record ID, save it on the model
+        $model->id = $record->id;
+
+        return true;
+    }
+
+    /**
+     * Deletes a parked sale.
+     *
+     * @param int $id
+     *
+     * @throws Throwable
+     */
+    public function deleteParkedSaleById(int $id)
+    {
+        $db = Craft::$app->getDb();
+        $transaction = $db->beginTransaction();
+        try {
+            $db->createCommand()
+                ->delete('{{%vend_importprofiles}}', ['id' => $id])
+                ->execute();
+
+            $transaction->commit();
+        } catch (Throwable $e) {
+            $transaction->rollBack();
+            throw $e;
+        }
+    }
 
     // Private Methods
     // =========================================================================
@@ -154,8 +217,7 @@ class ParkedSales extends Component
         return new ParkedSale($parkedSaleRecord->toArray([
             'id',
             'orderId',
-            'retryAfter',
-            'uid',
+            'retryAfter'
         ]));
     }
 }
