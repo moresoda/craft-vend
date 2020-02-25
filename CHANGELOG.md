@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.0.6 - 2020-02-25
+
+### Added
+- Added parked sales for when a sale fails to go through. Add an email in commerce to handle these then select it in the plugin settings.
+
 
 ## 2.0.5 - 2020-01-31
 
