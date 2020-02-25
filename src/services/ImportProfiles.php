@@ -42,7 +42,7 @@ class ImportProfiles extends Component
     // Constants
     // =========================================================================
 
-    public const CONFIG_PROFILES_KEY = 'vend.importProfiles';
+    const CONFIG_PROFILES_KEY = 'vend.importProfiles';
 
     // Private Properties
     // =========================================================================
@@ -301,7 +301,6 @@ class ImportProfiles extends Component
         $db = Craft::$app->getDb();
         $transaction = $db->beginTransaction();
         try {
-            // Delete the block type record
             $db->createCommand()
                 ->delete('{{%vend_importprofiles}}', ['id' => $record->id])
                 ->execute();

@@ -19,6 +19,7 @@ use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\helpers\Json;
+use Exception;
 use Throwable;
 use yii\base\InvalidConfigException;
 use yii\web\NotFoundHttpException;
@@ -32,15 +33,18 @@ use yii\web\NotFoundHttpException;
  */
 class Orders extends Component
 {
+    // Public Methods
+    // =========================================================================
 
     /**
      * Sends the order to Vend.
      *
      * @param int $orderId
      *
-     * @return mixed
+     * @return bool|mixed
      * @throws InvalidConfigException
      * @throws Throwable
+     * @throws \yii\base\Exception
      */
     public function registerSale(int $orderId) {
         // Get the order
@@ -110,17 +114,30 @@ class Orders extends Component
                     $vendCustomerId = $customerResult['data']['id'];
                     $customerUser->setFieldValue('vendCustomerId', $vendCustomerId);
                     Craft::$app->getElements()->saveElement($customerUser);
+
+                    Craft::info(
+                        'New customer created.',
+                        __METHOD__
+                    );
                 } else {
                     // There is a customer, but we could update it couldn’t we now
                     $vendApi->putRequest("2.0/customers/{$vendCustomerId}", Json::encode($vendCustomerObject), [
                         'Content-Type' => 'application/json',
                     ]);
+
+                    Craft::info(
+                        'Customer updated.',
+                        __METHOD__
+                    );
                 }
             }
 
-        } catch (\Exception $e) {
-            // TODO: logging
-            throw $e;
+        } catch (Exception $e) {
+            Craft::error(
+                'Error creating customer for order: '.$orderId.' - '.$e->getMessage(),
+                __METHOD__
+            );
+            Vend::$plugin->parkedSales->createFromOrder($order, $e);
         }
 
 
@@ -230,16 +247,35 @@ class Orders extends Component
             ];
         }
 
-//        Craft::dd($data);
-
         /**
          * Finally, send the sale to Vend
          */
         try {
-            return $vendApi->postRequest('register_sales', Json::encode($data));
-        } catch (\Exception $e) {
-            // TODO: logging
-            throw $e;
+            $response = $vendApi->postRequest('register_sales', Json::encode($data));
+
+            if (isset($response['status']) && $response['status'] === 'error') {
+                Craft::error(
+                    'Error registering sale with Vend for order: '.$orderId.' - '.$response['details'],
+                    __METHOD__
+                );
+                Vend::$plugin->parkedSales->createFromOrder($order);
+                return false;
+            }
+
+            Craft::info(
+                'Sale registered with Vend.',
+                __METHOD__
+            );
+
+            return $response;
+        } catch (Exception $e) {
+            Craft::error(
+                'Error registering sale with Vend for order: '.$orderId.' - '.$e->getMessage(),
+                __METHOD__
+            );
+            Vend::$plugin->parkedSales->createFromOrder($order, $e);
         }
+
+        return false;
     }
 }

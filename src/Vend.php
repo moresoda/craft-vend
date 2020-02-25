@@ -15,6 +15,7 @@ use angellco\vend\oauth\providers\VendVenveo as VendProvider;
 use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
+use angellco\vend\services\ParkedSales;
 use Craft;
 use craft\base\Plugin;
 use craft\commerce\elements\Order;
@@ -22,9 +23,6 @@ use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\web\UrlManager;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 use venveo\oauthclient\events\TokenEvent;
 use venveo\oauthclient\services\Providers;
 use venveo\oauthclient\services\Tokens;
@@ -39,6 +37,7 @@ use yii\web\Response;
  * @property VendApi        $api
  * @property ImportProfiles $importProfiles
  * @property Orders         $orders
+ * @property ParkedSales    $parkedSales
  * @property array          $cpNavItem
  * @property Response|mixed $settingsResponse
  */
@@ -63,7 +62,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '2.0.0';
+    public $schemaVersion = '2.1.0';
 
     // Public Methods
     // =========================================================================
@@ -86,23 +85,6 @@ class Vend extends Plugin
 
         // Install our event listeners
         $this->installEventListeners();
-
-//        $this->orders->registerSale(14923);
-
-
-//        // Add our key resources
-//        if ( craft()->request->isCpRequest() && craft()->userSession->isLoggedIn() )
-//        {
-//
-//            craft()->templates->includeCssResource('vend/css/vend.css');
-//
-//            if ((craft()->request->getSegment(1) == 'commerce' && craft()->request->getSegment(2) == 'products') || craft()->request->getSegment(1) == 'vend')
-//            {
-//                craft()->templates->includeJsResource('vend/js/vend.js');
-//                craft()->templates->includeJs("new Vend.Sync()");
-//            }
-//
-//        }
 
         // Log on load for debugging
         Craft::info(

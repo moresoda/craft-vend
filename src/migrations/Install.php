@@ -59,6 +59,7 @@ class Install extends Migration
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
         if ($this->createTables()) {
             $this->createIndexes();
+            $this->addForeignKeys();
             $this->insertDefaultData();
         }
         return true;
@@ -80,7 +81,7 @@ class Install extends Migration
     /**
      * @return bool
      */
-    protected function createTables()
+    protected function createTables(): bool
     {
         $tablesCreated = false;
 
@@ -102,6 +103,23 @@ class Install extends Migration
             );
         }
 
+        // vend_parkedsales table
+        $tableSchema = Craft::$app->db->schema->getTableSchema('{{%vend_parkedsales}}');
+        if ($tableSchema === null) {
+            $tablesCreated = true;
+            $this->createTable(
+                '{{%vend_parkedsales}}',
+                [
+                    'id' => $this->primaryKey(),
+                    'orderId' => $this->integer()->notNull(),
+                    'retryAfter' => $this->dateTime(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                ]
+            );
+        }
+
         return $tablesCreated;
     }
 
@@ -113,6 +131,18 @@ class Install extends Migration
         // vend_importprofiles table
         $this->createIndex(null, '{{%vend_importprofiles}}', 'name', true);
         $this->createIndex(null, '{{%vend_importprofiles}}', 'handle', true);
+
+        // vend_parkedsales table
+        $this->createIndex(null, '{{%vend_parkedsales}}', 'orderId', false);
+    }
+
+    /**
+     * @return void
+     */
+    protected function addForeignKeys()
+    {
+        // vend_parkedsales table
+        $this->addForeignKey(null, '{{%vend_parkedsales}}', 'orderId', '{{%commerce_orders}}', 'id', 'CASCADE', 'CASCADE');
     }
 
     /**
@@ -122,6 +152,9 @@ class Install extends Migration
     {
         // vend_importprofiles table
         $this->dropTableIfExists('{{%vend_importprofiles}}');
+
+        // vend_parkedsales table
+        $this->dropTableIfExists('{{%vend_parkedsales}}');
     }
 
     /**

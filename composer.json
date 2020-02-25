@@ -41,7 +41,8 @@
     "components": {
       "api": "angellco\\vend\\services\\Api",
       "importProfiles": "angellco\\vend\\services\\ImportProfiles",
-      "orders": "angellco\\vend\\services\\Orders"
+      "orders": "angellco\\vend\\services\\Orders",
+      "parkedSales": "angellco\\vend\\services\\ParkedSales"
     },
     "class": "angellco\\vend\\Vend"
   }

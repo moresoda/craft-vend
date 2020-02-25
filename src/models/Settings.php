@@ -72,6 +72,9 @@ class Settings extends Model
      */
     public $vend_noTaxId;
 
+    // Vend / Commerce relations
+    // =========================================================================
+
     /**
      * @var mixed
      */
@@ -81,4 +84,12 @@ class Settings extends Model
      * @var mixed
      */
     public $shippingMap;
+
+    // Commerce bits
+    // =========================================================================
+
+    /**
+     * @var string
+     */
+    public $commerce_parkedSaleEmailId;
 }

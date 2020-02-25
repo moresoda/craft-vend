@@ -240,7 +240,10 @@ class WebhooksController extends Controller
 
         $entry = $entryQuery->one();
         if (!$entry) {
-            // TODO logging
+            Craft::error(
+                'Error finding valid Entry for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                __METHOD__
+            );
             return $this->asJson([
                 'success' => false
             ]);
@@ -250,7 +253,10 @@ class WebhooksController extends Controller
 
         $entry->setFieldValue('vendInventoryCount', $inventoryAmount);
         if (!$elements->saveElement($entry)) {
-            // TODO logging
+            Craft::error(
+                'Error updating Entry for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                __METHOD__
+            );
             return $this->asJson([
                 'success' => false
             ]);
@@ -267,7 +273,10 @@ class WebhooksController extends Controller
 
         $variant = $variantQuery->one();
         if (!$variant) {
-            // TODO logging
+            Craft::error(
+                'Error finding valid Variant for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                __METHOD__
+            );
             return $this->asJson([
                 'success' => false
             ]);
@@ -275,11 +284,19 @@ class WebhooksController extends Controller
 
         $variant->stock = $inventoryAmount;
         if (!$elements->saveElement($variant)) {
-            // TODO logging
+            Craft::error(
+                'Error updating Variant for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                __METHOD__
+            );
             return $this->asJson([
                 'success' => false
             ]);
         }
+
+        Craft::info(
+            'Inventory webhook successfully executed.',
+            __METHOD__
+        );
 
         return $this->asJson([
             'success' => true

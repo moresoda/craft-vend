@@ -56,7 +56,8 @@ class Api extends Component
      *
      * @param array $config
      *
-     * @throws Exception
+     * @throws \ReflectionException
+     * @throws \yii\base\InvalidConfigException
      */
     public function __construct($config = [])
     {
@@ -66,19 +67,16 @@ class Api extends Component
         $this->oauthPlugin = OauthPlugin::$plugin;
 
         // Try and get a valid token and cache the results
-        try {
-            $tokens = $this->oauthPlugin->credentials->getValidTokensForAppAndUser('vend');
+        $tokens = $this->oauthPlugin->credentials->getValidTokensForAppAndUser('vend');
 
-            if ($tokens) {
-                /** @var OauthToken oauthToken */
-                $this->oauthToken = $tokens[0];
-                /** @var OauthProvider $provider */
-                $this->oauthProvider = $this->oauthToken->getApp()->getProviderInstance()->getConfiguredProvider();
-            }
-        } catch (Exception $e) {
-            throw $e;
+        if ($tokens) {
+            /** @var OauthToken oauthToken */
+            $this->oauthToken = $tokens[0];
+            /** @var OauthProvider $provider */
+            $this->oauthProvider = $this->oauthToken->getApp()->getProviderInstance()->getConfiguredProvider();
+        } else {
+            throw new Exception('No OAuth tokens available.');
         }
-
     }
 
     /**

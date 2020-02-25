@@ -143,11 +143,10 @@ class Vend extends AbstractProvider
      */
     protected function checkResponse(ResponseInterface $response, $data)
     {
-        // TODO sort this out
-//        error=access_denied
-//        var_dump($data);
+        if (!empty($data['error'])) {
+            throw new IdentityProviderException($data['error_description'], $response->getStatusCode(), $data);
+        }
     }
-
 
     /**
      * Generates a resource owner object from a successful resource owner
