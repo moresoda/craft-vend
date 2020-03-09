@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+
+## 2.0.7 - 2020-03-09
+
+### Changed
+- Changed how orders are validated before sending to Vend, now it only sends orders that wholly have Variants with product IDs on them. If there is a missing product ID or another kind of purchasable in there then it won’t send. 
+
+
 ## 2.0.6 - 2020-02-25
 
 ### Added

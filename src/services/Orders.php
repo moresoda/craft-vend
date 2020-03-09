@@ -53,6 +53,50 @@ class Orders extends Component
             return false;
         }
 
+        // Bail if incomplete
+        if (!$order->isCompleted) {
+            return false;
+        }
+
+        // Cache the line items
+        /** @var LineItem[] $lineItems */
+        $lineItems = $order->getLineItems();
+
+        // Bail if we don’t have any line items for some reason
+        if (!$lineItems) {
+            return false;
+        }
+
+        // Validate the line items - we won’t send any orders that don’t wholly
+        // contain Variants with product IDs stored on them.
+        $lineItemsValid = true;
+        foreach ($lineItems as $lineItem) {
+            $purchasable = $lineItem->getPurchasable();
+            if (!$purchasable) {
+                $lineItemsValid = false;
+                break;
+            }
+
+            // First check the purchasable is a Variant
+            if (!is_a($purchasable, Variant::class)) {
+                $lineItemsValid = false;
+                break;
+            }
+
+            // Secondly, check we have a product ID on the Variant
+            /** @var Variant $purchasable */
+            if (!$purchasable->vendProductId) {
+                $lineItemsValid = false;
+                break;
+            }
+        }
+
+        // Bail before we go any further if the line items are invalid
+        if (!$lineItemsValid) {
+            return false;
+        }
+
+        // Prep the API variables
         $vendApi = Vend::$plugin->api;
         $vendCustomerId = null;
         /** @var Settings $settings */
@@ -164,55 +208,49 @@ class Orders extends Component
         ];
 
         // Process the line items
-        /** @var LineItem $lineItem */
-        foreach ($order->getLineItems() as $lineItem) {
+        foreach ($lineItems as $lineItem) {
 
             /** @var Variant $variant */
             $variant = $lineItem->getPurchasable();
 
-            // Check we actually got a Commerce Variant - we don’t want to
-            // accidentally support other purchasables for now
-            if (is_a($variant, Variant::class)) {
-
-                // Work out the sales tax ID
-                $taxCategory = $lineItem->getTaxCategory();
-                if (!$taxCategory || !isset($settings->taxMap[$taxCategory->id])) {
-                    continue;
-                }
-                $salesTaxId = $settings->taxMap[$taxCategory->id];
-
-                // Find the amount of tax for one item
-                $taxAmount = bcdiv($lineItem->getTaxIncluded(), $lineItem->qty, 5);
-
-                // Prep the main product data array
-                $productData = [
-                    'product_id' => $variant->vendProductId,
-                    'quantity' => $lineItem->qty,
-                    // Unit price, tax exclusive
-                    'price' => bcsub($lineItem->salePrice, $taxAmount, 5),
-                    // The amount of tax in the unit price
-                    'tax' => $taxAmount, // TODO: check this includes the discount, if not we need to factor it in
-                    // The applicable Sales Tax ID
-                    'tax_id' => $salesTaxId
-                ];
-
-                // Add the discount for this line item if there is one
-                if ($lineItem->getDiscount()) {
-                    $productData['discount'] = $lineItem->getDiscount();
-                    $productData['price_set'] = 1;
-                }
-
-                // Add the no†e if there is one
-                if (!empty($lineItem->note)) {
-                    $productData['attributes'][] = [
-                        'name' => 'line_note',
-                        'value' => $lineItem->note
-                    ];
-                }
-
-                // Finally tack the product onto our main data stack
-                $data['register_sale_products'][] = $productData;
+            // Work out the sales tax ID
+            $taxCategory = $lineItem->getTaxCategory();
+            if (!$taxCategory || !isset($settings->taxMap[$taxCategory->id])) {
+                continue;
             }
+            $salesTaxId = $settings->taxMap[$taxCategory->id];
+
+            // Find the amount of tax for one item
+            $taxAmount = bcdiv($lineItem->getTaxIncluded(), $lineItem->qty, 5);
+
+            // Prep the main product data array
+            $productData = [
+                'product_id' => $variant->vendProductId,
+                'quantity' => $lineItem->qty,
+                // Unit price, tax exclusive
+                'price' => bcsub($lineItem->salePrice, $taxAmount, 5),
+                // The amount of tax in the unit price
+                'tax' => $taxAmount, // TODO: check this includes the discount, if not we need to factor it in
+                // The applicable Sales Tax ID
+                'tax_id' => $salesTaxId
+            ];
+
+            // Add the discount for this line item if there is one
+            if ($lineItem->getDiscount()) {
+                $productData['discount'] = $lineItem->getDiscount();
+                $productData['price_set'] = 1;
+            }
+
+            // Add the no†e if there is one
+            if (!empty($lineItem->note)) {
+                $productData['attributes'][] = [
+                    'name' => 'line_note',
+                    'value' => $lineItem->note
+                ];
+            }
+
+            // Finally tack the product onto our main data stack
+            $data['register_sale_products'][] = $productData;
 
         }
 
