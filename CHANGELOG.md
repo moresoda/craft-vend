@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.0.8 - 2020-03-09
+
+### Fixed
+- Fixed an issue where live environments couldn’t access the parked sales screen.
+
+
 ## 2.0.7 - 2020-03-09
 
 ### Changed
