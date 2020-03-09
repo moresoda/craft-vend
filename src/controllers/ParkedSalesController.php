@@ -34,11 +34,9 @@ class ParkedSalesController extends Controller
      * Parked sales index page.
      *
      * @return Response
-     * @throws ForbiddenHttpException
      */
     public function actionIndex(): Response
     {
-        $this->requireAdmin();
         $parkedSales = Vend::$plugin->parkedSales->getAll();
 
         return $this->renderTemplate('vend/parked-sales/_index', [
