@@ -299,8 +299,10 @@ class ProductsController extends Controller
         return [
             'id' => $rawProduct->vendProductId,
             'name' => $rawProduct->vendProductVariantName,
+            'optionValueOrName' => $formattedOptionValues ?: $rawProduct->vendProductVariantName,
             'parentProductId' => $rawProduct->vendProductVariantParentId,
             'default' => $default,
+            'hasStock' => $productJson['has_inventory'],
             'inventory' => $rawProduct->vendInventoryCount,
             'formattedOptionNames' => $formattedOptionNames,
             'formattedOptionValues' => $formattedOptionValues,

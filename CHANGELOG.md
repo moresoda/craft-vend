@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.0.9 - 2020-03-16
+
+### Added
+- Added `optionValueOrName` and `hasStock` to variant JSON in feeds.
+
+
 ## 2.0.8 - 2020-03-09
 
 ### Fixed
