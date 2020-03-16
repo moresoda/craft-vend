@@ -302,7 +302,7 @@ class ProductsController extends Controller
             'optionValueOrName' => $formattedOptionValues ?: $rawProduct->vendProductVariantName,
             'parentProductId' => $rawProduct->vendProductVariantParentId,
             'default' => $default,
-            'hasStock' => $productJson['has_inventory'],
+            'hasUnlimitedStock' => !$productJson['has_inventory'],
             'inventory' => $rawProduct->vendInventoryCount,
             'formattedOptionNames' => $formattedOptionNames,
             'formattedOptionValues' => $formattedOptionValues,
