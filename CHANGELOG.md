@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.0.10 - 2020-03-16
+
+### Fixed
+- Changed `hasStock` to `hasUnlimitedStock` which is `true` if the Vend `has_inventory` field is `false`.
+
+
 ## 2.0.9 - 2020-03-16
 
 ### Added
