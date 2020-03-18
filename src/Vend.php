@@ -64,7 +64,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '2.1.0';
+    public $schemaVersion = '2.2.0';
 
     // Public Methods
     // =========================================================================
