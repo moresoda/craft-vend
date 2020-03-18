@@ -305,6 +305,9 @@ class Orders extends Component
                 __METHOD__
             );
 
+            // TODO Update our copy of the order with the Vend ID
+//            $response
+
             return $response;
         } catch (Exception $e) {
             Craft::error(
