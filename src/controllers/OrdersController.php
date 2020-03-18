@@ -40,6 +40,8 @@ class OrdersController extends Controller
      */
     public function actionSend()
     {
+        $this->requirePostRequest();
+        $request = Craft::$app->getRequest();
         $orderId = Craft::$app->getRequest()->getRequiredParam('id');
 
         // Remove all parked sales for this order in advance - if the current
@@ -47,8 +49,22 @@ class OrdersController extends Controller
         Vend::$plugin->parkedSales->deleteParkedSalesByOrderId($orderId);
 
         if (!Vend::$plugin->orders->registerSale($orderId)) {
+
+            if ($request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => false,
+                ]);
+            }
+
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t register sale with Vend.'));
         } else {
+
+            if ($request->getAcceptsJson()) {
+                return $this->asJson([
+                    'success' => true,
+                ]);
+            }
+
             Craft::$app->getSession()->setNotice(Craft::t('vend', 'Sale registered with Vend.'));
         }
 

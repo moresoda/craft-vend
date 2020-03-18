@@ -16,6 +16,7 @@ use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
 use angellco\vend\services\ParkedSales;
+use angellco\vend\web\assets\orders\EditOrderAsset;
 use Craft;
 use craft\base\Plugin;
 use craft\commerce\elements\Order;
@@ -63,7 +64,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '2.1.0';
+    public $schemaVersion = '2.2.0';
 
     // Public Methods
     // =========================================================================
@@ -87,10 +88,24 @@ class Vend extends Plugin
         // Install our event listeners
         $this->installEventListeners();
 
+        // Custom logger
         Craft::getLogger()->dispatcher->targets[] = new FileTarget([
             'logFile' => Craft::getAlias('@storage/logs/vend.log'),
             'categories' => ['angellco\vend\*'],
         ]);
+
+        // Load up our order edit stuff
+        $view = Craft::$app->getView();
+        $view->hook('cp.commerce.order.edit', static function(array &$context) use($view) {
+
+            /** @var Order $order */
+            $order = $context['order'];
+            if ($order->isCompleted) {
+                $view->registerAssetBundle(EditOrderAsset::class);
+                $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
+            }
+
+        });
 
         // Log on load for debugging
         Craft::info(
