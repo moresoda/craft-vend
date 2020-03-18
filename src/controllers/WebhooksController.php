@@ -241,7 +241,7 @@ class WebhooksController extends Controller
         $entry = $entryQuery->one();
         if (!$entry) {
             Craft::error(
-                'Error finding valid Entry for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                'Error finding valid Entry for product ID: '.$vendProductId,
                 __METHOD__
             );
             return $this->asJson([
@@ -254,9 +254,10 @@ class WebhooksController extends Controller
         $entry->setFieldValue('vendInventoryCount', $inventoryAmount);
         if (!$elements->saveElement($entry)) {
             Craft::error(
-                'Error updating Entry for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                'Error updating Entry for product ID: '.$vendProductId,
                 __METHOD__
             );
+            Craft::info($entry->getErrors(), __METHOD__);
             return $this->asJson([
                 'success' => false
             ]);
@@ -274,7 +275,7 @@ class WebhooksController extends Controller
         $variant = $variantQuery->one();
         if (!$variant) {
             Craft::error(
-                'Error finding valid Variant for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                'Error finding valid Variant for product ID: '.$vendProductId,
                 __METHOD__
             );
             return $this->asJson([
@@ -285,9 +286,10 @@ class WebhooksController extends Controller
         $variant->stock = $inventoryAmount;
         if (!$elements->saveElement($variant)) {
             Craft::error(
-                'Error updating Variant for product ID: '.$vendProductId.' - '.$e->getMessage(),
+                'Error updating Variant for product ID: '.$vendProductId,
                 __METHOD__
             );
+            Craft::info($variant->getErrors(), __METHOD__);
             return $this->asJson([
                 'success' => false
             ]);

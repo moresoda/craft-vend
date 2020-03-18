@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.0.11 - 2020-03-18
+
+### Fixed
+- Fixed logging in webhook and redirected the output to our own file.
+
+
 ## 2.0.10 - 2020-03-16
 
 ### Fixed
