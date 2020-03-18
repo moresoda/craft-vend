@@ -305,8 +305,11 @@ class Orders extends Component
                 __METHOD__
             );
 
-            // TODO Update our copy of the order with the Vend ID
-//            $response
+            // Update our copy of the order with the Vend ID
+            if (isset($response['register_sale']['id'])) {
+                $order->setFieldValue('vendOrderId', $response['register_sale']['id']);
+                Craft::$app->getElements()->saveElement($order, false);
+            }
 
             return $response;
         } catch (Exception $e) {

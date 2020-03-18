@@ -41,6 +41,7 @@ Craft.Vend.OrderEdit = Garnish.Base.extend({
         // Before we go any further, check if we have a Vend Order ID or not
         if (this.settings.vendOrderId) {
             // TODO: If we do, crack on and send the UPDATE
+            alert('This order has already been sent to Vend - updating orders is not yet supported.')
             return;
         } else {
             // If we don’t then confirm they want to send the order - it might
@@ -59,7 +60,7 @@ Craft.Vend.OrderEdit = Garnish.Base.extend({
         Craft.postActionRequest('vend/orders/send', {id: this.settings.commerceOrderId}, $.proxy(function(response, textStatus) {
             this.$btn.removeClass('active');
             this.$spinner.hide();
-            this.loading = false;
+            this.sending = false;
 
             if (textStatus === 'success') {
                 if (response.success) {
