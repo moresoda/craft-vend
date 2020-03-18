@@ -160,8 +160,8 @@ class Orders extends Component
                     );
 
                     // Save the ID back onto our Craft User
+                    $vendCustomerId = $customerResult['data']['id'];
                     if ($customerUser) {
-                        $vendCustomerId = $customerResult['data']['id'];
                         $customerUser->setFieldValue('vendCustomerId', $vendCustomerId);
                         Craft::$app->getElements()->saveElement($customerUser);
                     }
