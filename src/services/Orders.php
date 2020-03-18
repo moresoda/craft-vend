@@ -154,15 +154,17 @@ class Orders extends Component
                         'Content-Type' => 'application/json',
                     ]);
 
-                    // Save the ID back onto our Craft User
-                    $vendCustomerId = $customerResult['data']['id'];
-                    $customerUser->setFieldValue('vendCustomerId', $vendCustomerId);
-                    Craft::$app->getElements()->saveElement($customerUser);
-
                     Craft::info(
                         'New customer created.',
                         __METHOD__
                     );
+
+                    // Save the ID back onto our Craft User
+                    if ($customerUser) {
+                        $vendCustomerId = $customerResult['data']['id'];
+                        $customerUser->setFieldValue('vendCustomerId', $vendCustomerId);
+                        Craft::$app->getElements()->saveElement($customerUser);
+                    }
                 } else {
                     // There is a customer, but we could update it couldn’t we now
                     $vendApi->putRequest("2.0/customers/{$vendCustomerId}", Json::encode($vendCustomerObject), [
