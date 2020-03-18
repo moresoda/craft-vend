@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.1.0 - 2020-03-18
+
+### Added
+- Added the ability to send an order to Vend from the CP order edit view.
+- Added a new Vend Order ID field - make sure to add this to the Order field layout in Commerce > System Settings > Order Fields.
+
+### Changed
+- Now storing the Vend Order ID on the Commerce Order after registering a sale.
+
+
 ## 2.0.11 - 2020-03-18
 
 ### Fixed
