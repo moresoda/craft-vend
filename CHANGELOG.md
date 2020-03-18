@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.1.2 - 2020-03-18
+
+### Fixed
+- Fixed an issue where the Vend Customer on guest orders wasn’t getting sent to Vend with the order.
+
+
 ## 2.1.1 - 2020-03-18
 
 ### Fixed
