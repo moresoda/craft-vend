@@ -22,6 +22,7 @@ use craft\commerce\elements\Order;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
+use craft\log\FileTarget;
 use craft\web\UrlManager;
 use venveo\oauthclient\events\TokenEvent;
 use venveo\oauthclient\services\Providers;
@@ -85,6 +86,11 @@ class Vend extends Plugin
 
         // Install our event listeners
         $this->installEventListeners();
+
+        Craft::getLogger()->dispatcher->targets[] = new FileTarget([
+            'logFile' => Craft::getAlias('@storage/logs/vend.log'),
+            'categories' => ['angellco\vend\*'],
+        ]);
 
         // Log on load for debugging
         Craft::info(
