@@ -105,6 +105,7 @@ class Vend extends Plugin
             /** @var Order $order */
             $order = $context['order'];
             if ($order->isCompleted) {
+                // TODO: check its a Vend order
                 $view->registerAssetBundle(EditOrderAsset::class);
                 $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
             }
@@ -271,9 +272,6 @@ class Vend extends Plugin
                 );
             }
         }
-
-
-
 
         // Project config listeners
         Craft::$app->projectConfig

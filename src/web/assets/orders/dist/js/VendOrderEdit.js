@@ -17,6 +17,9 @@ Craft.Vend.OrderEdit = Garnish.Base.extend({
     init: function(settings) {
         this.setSettings(settings, this.defaults);
 
+        // TODO: add the View on Vend link if its on there
+        // "<a href='https://<domainPrefix>.vendhq.com/redirect/1.0/sales/<orderId>?action=view' class='go' target='_blank'>View on Vend</a>";
+
         this.$btn = $('<div class="btn" data-icon-after="upload">Send to Vend</div>');
         this.$spinner = $('<div class="spinner" style="display: none;"></div>');
 
