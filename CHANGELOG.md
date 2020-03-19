@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.1.3 - 2020-03-19
+
+### Added
+- Added a link out to the order in the Vend sales screen for valid Vend orders - currently only visible in the orders index if the Vend Order ID field has been added to the view.
+
+
 ## 2.1.2 - 2020-03-18
 
 ### Fixed

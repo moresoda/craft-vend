@@ -18,8 +18,12 @@ use angellco\vend\services\Orders;
 use angellco\vend\services\ParkedSales;
 use angellco\vend\web\assets\orders\EditOrderAsset;
 use Craft;
+use craft\base\EagerLoadingFieldInterface;
+use craft\base\Field;
 use craft\base\Plugin;
+use craft\base\PreviewableFieldInterface;
 use craft\commerce\elements\Order;
+use craft\commerce\elements\Variant;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
@@ -101,6 +105,7 @@ class Vend extends Plugin
             /** @var Order $order */
             $order = $context['order'];
             if ($order->isCompleted) {
+                // TODO: check its a Vend order
                 $view->registerAssetBundle(EditOrderAsset::class);
                 $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
             }
@@ -215,6 +220,57 @@ class Vend extends Plugin
                     $this->orders->registerSale($order->id);
                 }
             );
+        }
+
+        // Customise the Vend Order ID field on order the index
+        if ($this->getSettings()->domainPrefix) {
+            /** @var Field $vendOrderIdField */
+            $vendOrderIdField = Craft::$app->getFields()->getFieldByHandle('vendOrderId');
+            if ($vendOrderIdField) {
+                Event::on(
+                    Order::class,
+                    Order::EVENT_SET_TABLE_ATTRIBUTE_HTML,
+                    function(Event $e) use ($vendOrderIdField) {
+                        if ($e->attribute === "field:{$vendOrderIdField->id}") {
+
+                            /** @var Order $order */
+                            $order = $e->sender;
+
+                            // Check its completed
+                            if ($order->isCompleted) {
+
+                                // Check its a Vend Order as well
+                                $firstLineItem = $order->getLineItems()[0];
+                                if (is_a($firstLineItem->getPurchasable(), Variant::class)) {
+                                    if ($vendOrderIdField instanceof PreviewableFieldInterface) {
+                                        // Was this field value eager-loaded?
+                                        if ($vendOrderIdField instanceof EagerLoadingFieldInterface && $order->hasEagerLoadedElements($vendOrderIdField->handle)) {
+                                            $value = $order->getEagerLoadedElements($vendOrderIdField->handle);
+                                        } else {
+                                            // The field might not actually belong to this element
+                                            try {
+                                                $value = $order->getFieldValue($vendOrderIdField->handle);
+                                            } catch (\Throwable $e) {
+                                                $value = $vendOrderIdField->normalizeValue(null);
+                                            }
+                                        }
+
+                                        // If we have a value, show the link
+                                        if ($value) {
+                                            $e->html = "<a href='https://{$this->getSettings()->domainPrefix}.vendhq.com/redirect/1.0/sales/{$value}?action=view' class='go' target='_blank'>View on Vend</a>";
+                                        } else {
+                                            // If we don’t, show an error
+                                            $e->html = "<span class='error'>Not yet on Vend</span>";
+                                        }
+                                    }
+                                } else {
+                                    $e->html = 'Not a Vend Order.';
+                                }
+                            }
+                        }
+                    }
+                );
+            }
         }
 
         // Project config listeners
