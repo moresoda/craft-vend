@@ -35,7 +35,7 @@ class FeedsController extends Controller
      *
      * @throws BadRequestHttpException
      */
-    public function actionFull(): Response
+    public function actionRun(): Response
     {
         $this->requireCpRequest();
         $this->requirePostRequest();
