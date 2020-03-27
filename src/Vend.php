@@ -17,6 +17,7 @@ use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
 use angellco\vend\services\ParkedSales;
 use angellco\vend\web\assets\orders\EditOrderAsset;
+use angellco\vend\widgets\FullFeed;
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
 use craft\base\Field;
@@ -34,6 +35,7 @@ use craft\feedme\services\Process;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\log\FileTarget;
+use craft\services\Dashboard;
 use craft\web\UrlManager;
 use venveo\oauthclient\events\TokenEvent;
 use venveo\oauthclient\services\Providers;
@@ -261,6 +263,15 @@ class Vend extends Plugin
 //            $e->config[BlockTypes::CONFIG_BLOCKTYPE_KEY] = ProjectConfigHelper::rebuildProjectConfig();
 //        });
 
+        // Widgets
+        Event::on(
+            Dashboard::class,
+            Dashboard::EVENT_REGISTER_WIDGET_TYPES,
+            static function(RegisterComponentTypesEvent $event) {
+                $event->types[] = FullFeed::class;
+            }
+        );
+
         // Feed Me listeners
         Event::on(
             Process::class,
@@ -295,7 +306,7 @@ class Vend extends Plugin
                                 'processedElementIds' => $processedElementIds,
                             ]));
 
-                            Craft::$app->getQueue()->run();
+                            $queue->getQueue()->run();
 
                             break;
                         }
@@ -317,12 +328,11 @@ class Vend extends Plugin
                                 'processedElementIds' => $processedElementIds,
                             ]));
 
-                            Craft::$app->getQueue()->run();
+                            $queue->run();
                         }
 
                     }
                 }
-
 
             }
         );
