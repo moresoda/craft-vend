@@ -20,12 +20,14 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
 
         this.$widget = $('#widget' + this.settings.widgetId);
         this.$body = this.$widget.find('.body:first');
-        this.initBtn();
+        this.$form = this.$body.find('form:first');
+        this.$btn = this.$body.find('.btn:first');
+        this.initForm();
     },
 
-    initBtn: function() {
-        this.$btn = this.$body.find('.btn:first');
-        this.addListener(this.$btn, 'click', function() {
+    initForm: function() {
+        this.addListener(this.$form, 'submit', function($e) {
+            $e.preventDefault();
             this.startFullSync();
         });
     },
@@ -38,6 +40,8 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
         this.working = true;
         this.$widget.addClass('loading');
         this.$btn.addClass('disabled');
+
+        // TODO: hook up limit and fast cascade params
 
         this.$btn.addClass('active');
         Craft.postActionRequest('vend/feeds/run', {}, $.proxy(function(response, textStatus) {

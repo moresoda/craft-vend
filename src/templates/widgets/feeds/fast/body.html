@@ -1,4 +1,13 @@
-<p class="centeralign">
-    <input type="text">
+{% import "_includes/forms" as forms %}
+
+<form method="post">
+    {{ forms.textField({
+        label: "Limit"|t('app'),
+        id: 'limit',
+        name: 'limit',
+        value: 50,
+        required: true,
+    }) }}
+
     <a class="btn submit">{{ 'Run fast sync'|t('vend') }}</a>
-</p>
+</form>
