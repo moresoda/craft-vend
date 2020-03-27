@@ -17,6 +17,7 @@ use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
 use angellco\vend\services\ParkedSales;
 use angellco\vend\web\assets\orders\EditOrderAsset;
+use angellco\vend\widgets\FastFeed;
 use angellco\vend\widgets\FullFeed;
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
@@ -269,6 +270,7 @@ class Vend extends Plugin
             Dashboard::EVENT_REGISTER_WIDGET_TYPES,
             static function(RegisterComponentTypesEvent $event) {
                 $event->types[] = FullFeed::class;
+                $event->types[] = FastFeed::class;
             }
         );
 

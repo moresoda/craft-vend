@@ -24,7 +24,7 @@ use craft\base\Widget;
  * @package   Vend
  * @since     2.2.0
  */
-class FullFeed extends Widget
+class FastFeed extends Widget
 {
     // Public Methods
     // =========================================================================
@@ -34,7 +34,7 @@ class FullFeed extends Widget
      */
     public static function displayName(): string
     {
-        return Craft::t('vend', 'Vend - Full Sync');
+        return Craft::t('vend', 'Vend - Fast Sync');
     }
 
     /**
@@ -53,8 +53,8 @@ class FullFeed extends Widget
     {
         $view = Craft::$app->getView();
         $view->registerAssetBundle(WidgetsAsset::class);
-        $view->registerJs('new Craft.Vend.FullFeedWidget({widgetId:'.$this->id.'});');
-        return $view->renderTemplate('vend/widgets/feeds/full/body');
+        $view->registerJs('new Craft.Vend.FastFeedWidget({widgetId:'.$this->id.'});');
+        return $view->renderTemplate('vend/widgets/feeds/fast/body');
     }
 
     /**

@@ -37,6 +37,7 @@ class WidgetsAsset extends AssetBundle
 
         $this->js = [
             'js/VendFullFeedWidget.js',
+            'js/VendFastFeedWidget.js',
         ];
 
         parent::init();
