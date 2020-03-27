@@ -15,6 +15,7 @@ use angellco\vend\Vend;
 use Craft;
 use craft\db\Paginator;
 use craft\elements\Entry;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
@@ -49,6 +50,7 @@ class ProductsController extends Controller
      *
      * @return Response
      * @throws IdentityProviderException
+     * @throws \Exception
      */
     public function actionList(): Response
     {
@@ -57,7 +59,7 @@ class ProductsController extends Controller
         /** @var Settings $settings */
         $settings = Vend::$plugin->getSettings();
 
-        // Set the page size
+        // Set the default params
         $params = [
             'page_size' => 500,
             'deleted' => false
@@ -94,6 +96,8 @@ class ProductsController extends Controller
                 $products[] = [
                     'id' => $product['id'],
                     'name' => $product['name'],
+                    'dateCreated' => DateTimeHelper::toDateTime($product['created_at']),
+                    'dateUpdated' => DateTimeHelper::toDateTime($product['updated_at']),
                     'productTypeId' => $product['product_type_id'],
                     'brandId' => $product['brand_id'],
                     'supplierId' => $product['supplier_id'],
@@ -143,6 +147,7 @@ class ProductsController extends Controller
         $criteria = [
             'limit' => null,
             'section' => 'vendProducts',
+            'orderBy' => 'vendDateUpdated desc',
             // Exclude variants
             'vendProductIsVariant' => 'not 1'
         ];
