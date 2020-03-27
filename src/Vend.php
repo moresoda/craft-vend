@@ -26,6 +26,12 @@ use craft\commerce\elements\Order;
 use craft\commerce\elements\Variant;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\feedme\events\FeedProcessEvent;
+use craft\feedme\models\FeedModel;
+use craft\feedme\Plugin as FeedMe;
+use craft\feedme\queue\jobs\FeedImport;
+use craft\feedme\services\Process;
+use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\log\FileTarget;
 use craft\web\UrlManager;
@@ -89,38 +95,9 @@ class Vend extends Plugin
         parent::init();
         self::$plugin = $this;
 
-        // Install our event listeners
+        $this->setupLogging();
         $this->installEventListeners();
-
-        // Custom logger
-        Craft::getLogger()->dispatcher->targets[] = new FileTarget([
-            'logFile' => Craft::getAlias('@storage/logs/vend.log'),
-            'categories' => ['angellco\vend\*'],
-        ]);
-
-        // Load up our order edit stuff
-        $view = Craft::$app->getView();
-        $view->hook('cp.commerce.order.edit', static function(array &$context) use($view) {
-
-            /** @var Order $order */
-            $order = $context['order'];
-            if ($order->isCompleted) {
-                // TODO: check its a Vend order
-                $view->registerAssetBundle(EditOrderAsset::class);
-                $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
-            }
-
-        });
-
-        // Log on load for debugging
-        Craft::info(
-            Craft::t(
-                'vend',
-                '{name} plugin loaded',
-                ['name' => $this->name]
-            ),
-            __METHOD__
-        );
+        $this->attachToHooks();
     }
 
     /**
@@ -283,6 +260,115 @@ class Vend extends Plugin
 //        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $e) {
 //            $e->config[BlockTypes::CONFIG_BLOCKTYPE_KEY] = ProjectConfigHelper::rebuildProjectConfig();
 //        });
+
+        // Feed Me listeners
+        Event::on(
+            Process::class,
+            Process::EVENT_AFTER_PROCESS_FEED,
+            static function(FeedProcessEvent $event) {
+                /** @var FeedModel $feed */
+                $currentFeed = $event->feed;
+                $feeds = FeedMe::$plugin->getFeeds();
+                $queue = Craft::$app->getQueue();
+
+                // Main product database import
+                if (StringHelper::contains($currentFeed->feedUrl, 'vend/products/list')) {
+
+                    /** TODO
+                     * If this feed has had a modded URL with the cascadeToFast param set, then
+                     * we need to trigger the fast imports only otherwise run the inventory one
+                     * and when that finishes it will trigger the other full imports.
+                     */
+
+                    // So, trigger inventory or fast import depending on above
+                    foreach ($feeds->getFeeds() as $feed) {
+
+                        // Run inventory
+                        if (StringHelper::contains($feed->feedUrl, 'vend/products/inventory')) {
+
+                            $processedElementIds = [];
+
+                            $queue->delay(0)->push(new FeedImport([
+                                'feed' => $feed,
+                                'limit' => null,
+                                'offset' => null,
+                                'processedElementIds' => $processedElementIds,
+                            ]));
+
+                            Craft::$app->getQueue()->run();
+
+                            break;
+                        }
+
+                    }
+                // Main inventory feed
+                } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/inventory')) {
+
+                    // So, trigger all of the full product import feeds
+                    foreach ($feeds->getFeeds() as $feed) {
+
+                        if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
+                            $processedElementIds = [];
+
+                            $queue->delay(0)->push(new FeedImport([
+                                'feed' => $feed,
+                                'limit' => null,
+                                'offset' => null,
+                                'processedElementIds' => $processedElementIds,
+                            ]));
+
+                            Craft::$app->getQueue()->run();
+                        }
+
+                    }
+                }
+
+
+            }
+        );
+    }
+
+    /**
+     * Attach to any hooks.
+     */
+    protected function attachToHooks()
+    {
+        $view = Craft::$app->getView();
+
+        // Load up our order edit stuff
+        $view->hook('cp.commerce.order.edit', static function(array &$context) use($view) {
+
+            /** @var Order $order */
+            $order = $context['order'];
+            if ($order->isCompleted) {
+                // TODO: check its a Vend order
+                $view->registerAssetBundle(EditOrderAsset::class);
+                $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
+            }
+
+        });
+    }
+
+    /**
+     * Setup the logging.
+     */
+    protected function setupLogging()
+    {
+        // Custom logger
+        Craft::getLogger()->dispatcher->targets[] = new FileTarget([
+            'logFile' => Craft::getAlias('@storage/logs/vend.log'),
+            'categories' => ['angellco\vend\*'],
+        ]);
+
+        // Log on load for debugging
+        Craft::info(
+            Craft::t(
+                'vend',
+                '{name} plugin loaded',
+                ['name' => $this->name]
+            ),
+            __METHOD__
+        );
     }
 
     /**
