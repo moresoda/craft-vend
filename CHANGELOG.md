@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.2.4 - 2020-03-30
+
+> {note} After installing this update make sure to add the new Vend Date Created field to the field layout on the Vend Products section.
+> {note} You will also need to map the new Vend Date Created field in the Vend products Feed Me feed - this should be set to the `dateCreated/date` option on the element mapping screen.
+
+### Added
+- Added a new Vend Date Created field to the Vend Products section and modified the product import API to sort by date created. 
+
+### Changed
+- Updated the fast feed tools to have an ordering options - you can now order by Date Created or Date Updated.
+
+
 ## 2.2.3 - 2020-03-30
 
 ### Fixed

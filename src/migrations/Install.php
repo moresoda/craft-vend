@@ -384,6 +384,20 @@ class Install extends Migration
                 'settings' => [],
             ]);
 
+            $dateCreatedField = $fieldsService->createField([
+                'type' => Date::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Date Created',
+                'handle' => 'vendDateCreated',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'showDate' => true,
+                'showTime' => true,
+                'settings' => [],
+            ]);
+
             // Save all the fields
             if (
                 $fieldsService->saveField($productIdField)
@@ -400,6 +414,7 @@ class Install extends Migration
                 && $fieldsService->saveField($customerIdField)
                 && $fieldsService->saveField($orderIdField)
                 && $fieldsService->saveField($dateUpdatedField)
+                && $fieldsService->saveField($dateCreatedField)
             ) {
 
                 // Product Entries Field Layout
@@ -432,7 +447,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $typeIdField->id,
+                    'fieldId' => $dateCreatedField->id,
                     'required' => false,
                     'sortOrder' => 2
                 ]);
@@ -440,7 +455,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $brandIdField->id,
+                    'fieldId' => $typeIdField->id,
                     'required' => false,
                     'sortOrder' => 3
                 ]);
@@ -448,7 +463,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $supplierIdField->id,
+                    'fieldId' => $brandIdField->id,
                     'required' => false,
                     'sortOrder' => 4
                 ]);
@@ -456,7 +471,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $tagIdsField->id,
+                    'fieldId' => $supplierIdField->id,
                     'required' => false,
                     'sortOrder' => 5
                 ]);
@@ -464,7 +479,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $hasVariantsField->id,
+                    'fieldId' => $tagIdsField->id,
                     'required' => false,
                     'sortOrder' => 6
                 ]);
@@ -472,7 +487,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $isVariantField->id,
+                    'fieldId' => $hasVariantsField->id,
                     'required' => false,
                     'sortOrder' => 7
                 ]);
@@ -480,7 +495,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $variantParentIdField->id,
+                    'fieldId' => $isVariantField->id,
                     'required' => false,
                     'sortOrder' => 8
                 ]);
@@ -488,7 +503,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $variantNameField->id,
+                    'fieldId' => $variantParentIdField->id,
                     'required' => false,
                     'sortOrder' => 9
                 ]);
@@ -496,7 +511,7 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
-                    'fieldId' => $variantInventoryField->id,
+                    'fieldId' => $variantNameField->id,
                     'required' => false,
                     'sortOrder' => 10
                 ]);
@@ -504,9 +519,17 @@ class Install extends Migration
                 $this->insert(FieldLayoutField::tableName(), [
                     'layoutId' => $fieldLayoutId,
                     'tabId' => $tabId,
+                    'fieldId' => $variantInventoryField->id,
+                    'required' => false,
+                    'sortOrder' => 11
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
                     'fieldId' => $jsonField->id,
                     'required' => true,
-                    'sortOrder' => 11
+                    'sortOrder' => 12
                 ]);
 
                 $fieldLayout = $fieldsService->getLayoutById($fieldLayoutId);

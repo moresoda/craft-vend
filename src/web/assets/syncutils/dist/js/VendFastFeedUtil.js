@@ -12,6 +12,7 @@ Craft.Vend.FastFeedUtil = Garnish.Base.extend({
 
     $pane: null,
     $form: null,
+    $orderInput: null,
     $limitInput: null,
     $btn: null,
     working: false,
@@ -21,6 +22,7 @@ Craft.Vend.FastFeedUtil = Garnish.Base.extend({
 
         this.$pane = $('#vend-syncutils-fast');
         this.$form = this.$pane.find('form:first');
+        this.$orderInput = this.$form.find('select[name="order"]:first');
         this.$limitInput = this.$form.find('input[name="limit"]:first');
         this.$btn = this.$form.find('.btn:first');
         this.initForm();
@@ -47,7 +49,15 @@ Craft.Vend.FastFeedUtil = Garnish.Base.extend({
             limit = 50;
         }
 
-        Craft.postActionRequest('vend/feeds/run', {'fastSyncLimit': limit}, $.proxy(function(response, textStatus) {
+        var order = this.$orderInput.val();
+        if (order === '') {
+            order = 'vendDateUpdated';
+        }
+
+        Craft.postActionRequest('vend/feeds/run', {
+            'fastSyncLimit': limit,
+            'fastSyncOrder': order
+        }, $.proxy(function(response, textStatus) {
             this.working = false;
             this.$pane.removeClass('loading');
             this.$btn.removeClass('disabled');

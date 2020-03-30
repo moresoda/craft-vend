@@ -15,14 +15,12 @@ use angellco\vend\Vend;
 use Craft;
 use craft\db\Paginator;
 use craft\elements\Entry;
-use craft\errors\ElementNotFoundException;
 use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\twig\variables\Paginate;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use yii\base\Exception;
 use yii\web\Response;
 
 /**
@@ -123,10 +121,14 @@ class ProductsController extends Controller
             'after' => $response['version']['max']
         ];
 
-        // Merge on fastSyncLimit if we need to
+        // Merge on fastSyncLimit and fastSyncOrder if we need to
         $fastSyncLimit = $request->getParam('fastSyncLimit');
         if ($fastSyncLimit) {
             $params['fastSyncLimit'] = $fastSyncLimit;
+        }
+        $fastSyncOrder = $request->getParam('fastSyncOrder');
+        if ($fastSyncOrder) {
+            $params['fastSyncOrder'] = $fastSyncOrder;
         }
 
         $return['nextUrl'] = UrlHelper::actionUrl('vend/products/list', $params);
@@ -152,15 +154,23 @@ class ProductsController extends Controller
         $request = Craft::$app->getRequest();
         $profiles = Vend::$plugin->importProfiles;
 
+        // Set the limit and inventory params which are usually only present for the fast sync
         $limit = $request->getQueryParam('limit', null);
         $fetchInventoryInline = (bool) $request->getQueryParam('inventory', false);
+
+        // Order - by default we want this to be date updated but we can override this for things
+        // like the fast sync where we probably want date created to get the most recently added products
+        $order = $request->getQueryParam('order', 'vendDateUpdated');
+        if (!in_array($order, ['vendDateUpdated','vendDateCreated'])) {
+            $order = 'vendDateUpdated';
+        }
 
         // Set up the basic query
         $query = Entry::find();
         $criteria = [
             'limit' => $limit,
             'section' => 'vendProducts',
-            'orderBy' => 'vendDateUpdated desc',
+            'orderBy' => $order.' desc',
             // Exclude variants
             'vendProductIsVariant' => 'not 1'
         ];
