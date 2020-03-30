@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.2.1 - 2020-03-30
+
+### Fixed
+- Fixed schema version not being bumped for previous release.
+
 
 ## 2.2.0 - 2020-03-30
 
