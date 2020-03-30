@@ -15,11 +15,14 @@ use angellco\vend\Vend;
 use Craft;
 use craft\db\Paginator;
 use craft\elements\Entry;
+use craft\errors\ElementNotFoundException;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\twig\variables\Paginate;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use yii\base\Exception;
 use yii\web\Response;
 
 /**
@@ -49,6 +52,7 @@ class ProductsController extends Controller
      *
      * @return Response
      * @throws IdentityProviderException
+     * @throws \Exception
      */
     public function actionList(): Response
     {
@@ -57,7 +61,7 @@ class ProductsController extends Controller
         /** @var Settings $settings */
         $settings = Vend::$plugin->getSettings();
 
-        // Set the page size
+        // Set the default params
         $params = [
             'page_size' => 500,
             'deleted' => false
@@ -94,6 +98,8 @@ class ProductsController extends Controller
                 $products[] = [
                     'id' => $product['id'],
                     'name' => $product['name'],
+                    'dateCreated' => DateTimeHelper::toDateTime($product['created_at']),
+                    'dateUpdated' => DateTimeHelper::toDateTime($product['updated_at']),
                     'productTypeId' => $product['product_type_id'],
                     'brandId' => $product['brand_id'],
                     'supplierId' => $product['supplier_id'],
@@ -113,10 +119,17 @@ class ProductsController extends Controller
         ];
 
         // Sort out the next URL
-        $nextUrl = UrlHelper::actionUrl('vend/products/list', [
+        $params = [
             'after' => $response['version']['max']
-        ]);
-        $return['nextUrl'] = $nextUrl;
+        ];
+
+        // Merge on fastSyncLimit if we need to
+        $fastSyncLimit = $request->getParam('fastSyncLimit');
+        if ($fastSyncLimit) {
+            $params['fastSyncLimit'] = $fastSyncLimit;
+        }
+
+        $return['nextUrl'] = UrlHelper::actionUrl('vend/products/list', $params);
 
         return $this->asJson($return);
     }
@@ -132,17 +145,22 @@ class ProductsController extends Controller
      * Vend API.
      *
      * @return Response
+     * @throws IdentityProviderException
      */
     public function actionImport(): Response
     {
         $request = Craft::$app->getRequest();
         $profiles = Vend::$plugin->importProfiles;
 
+        $limit = $request->getQueryParam('limit', null);
+        $fetchInventoryInline = (bool) $request->getQueryParam('inventory', false);
+
         // Set up the basic query
         $query = Entry::find();
         $criteria = [
-            'limit' => null,
+            'limit' => $limit,
             'section' => 'vendProducts',
+            'orderBy' => 'vendDateUpdated desc',
             // Exclude variants
             'vendProductIsVariant' => 'not 1'
         ];
@@ -173,6 +191,11 @@ class ProductsController extends Controller
 
             $variants = [];
 
+            // Check if we need to update the inventory inline or not
+            if ($fetchInventoryInline) {
+                $this->_updateInventoryInline($rawProduct);
+            }
+
             // Add the default variant
             $variants[] = $this->_rawProductEntryToVariantArray($rawProduct, true);
 
@@ -190,6 +213,12 @@ class ProductsController extends Controller
 
                 /** @var Entry $rawVariant */
                 foreach ($variantQuery->all() as $rawVariant) {
+
+                    // Check if we need to update the inventory inline or not
+                    if ($fetchInventoryInline) {
+                        $this->_updateInventoryInline($rawVariant);
+                    }
+
                     $variants[] = $this->_rawProductEntryToVariantArray($rawVariant);
                 }
             }
@@ -309,6 +338,65 @@ class ProductsController extends Controller
             'options' => $options,
             'productJson' => $productJson
         ];
+    }
+
+    /**
+     * Updates the inventory of a Vend Product Entry on the fly.
+     *
+     * @param $entry
+     *
+     * @throws IdentityProviderException
+     */
+    private function _updateInventoryInline(Entry $entry)
+    {
+        $api = Vend::$plugin->api;
+        /** @var Settings $settings */
+        $settings = Vend::$plugin->getSettings();
+
+        // Get the product ID
+        $productId = $entry->vendProductId;
+        if (!$productId) {
+            return;
+        }
+
+        // Make API call (if it has more than 500 stock entries then we’re in trouble)
+        $response = $api->getResponse("2.0/products/{$productId}/inventory", ['page_size' => 500]);
+
+        // Check if we got nothing back and bail
+        if (!$response['data']) {
+            return;
+        }
+
+        // Find the one for our outlet
+        $inventoryAmount = null;
+        foreach ($response['data'] as $inventoryItem) {
+            if ($inventoryItem['outlet_id'] === $settings->vend_outletId) {
+                $inventoryAmount = $inventoryItem['inventory_level'];
+                break;
+            }
+        }
+
+        // Check we got some inventory
+        if ($inventoryAmount === null) {
+            return;
+        }
+
+        // Update and save
+        try {
+            $entry->setFieldValue('vendInventoryCount', $inventoryAmount);
+            if (!Craft::$app->getElements()->saveElement($entry)) {
+                Craft::error(
+                    'Error updating inventory inline during import for entry ID: '.$entry->id,
+                    __METHOD__
+                );
+                Craft::info($entry->getErrors(), __METHOD__);
+            }
+        } catch (\Throwable $e) {
+            Craft::error(
+                'Exception thrown whilst updating inventory inline during import for entry ID: '.$entry->id,
+                __METHOD__
+            );
+        }
     }
 
 }

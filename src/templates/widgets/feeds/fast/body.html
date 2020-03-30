@@ -1,0 +1,15 @@
+{% import "_includes/forms" as forms %}
+
+<form method="post" accept-charset="UTF-8">
+    <p class="light">Runs a fast sync of the most recent products in the Vend inventory.</p>
+
+    {{ forms.textField({
+        label: "Limit"|t('app'),
+        id: 'vend-fast-sync-limit',
+        name: 'limit',
+        value: 50,
+        required: true,
+    }) }}
+
+    <input type="submit" class="btn submit" value="{{ 'Run now'|t('vend') }}" />
+</form>
