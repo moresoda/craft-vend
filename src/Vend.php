@@ -365,9 +365,9 @@ class Vend extends Plugin
                                 'offset' => null,
                                 'processedElementIds' => $processedElementIds,
                             ]));
-                        }
 
-                        $runQueue = true;
+                            $runQueue = true;
+                        }
                     }
 
                     if ($runQueue) {
