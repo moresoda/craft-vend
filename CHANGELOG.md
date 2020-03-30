@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+
+## 2.2.2 - 2020-03-30
+
+### Fixed
+- Fixed changelog for 2.2.0.
+
+
 ## 2.2.1 - 2020-03-30
 
 ### Fixed
