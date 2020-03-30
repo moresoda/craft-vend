@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.2.0 - 2020-03-30
+
+> {note} After installing this update make sure to add the new Vend Date Updated field to the field layout on the Vend Products section.
+
+### Added
+- Added a new Vend Date Updated field to the Vend Products section and modified the product import API to sort by date updated.
+- Added a new import API for running faster feeds - this still requires the full Vend product import but then after that skips the inventory feed and instead processes all the Commerce product import feeds with a limit set from one of the new CP tools.
+- Added two tools that let you run the full or fast feed from the Dashboard via two new widgets or from the Vend > Sync CP tab. 
+
+### Changed
+- Feed Me feeds now cascade so that you only need to start the Vend products feed. After that finishes the inventory and Commerce product import feeds will start up on their own.
+
+
 ## 2.1.3 - 2020-03-19
 
 ### Added
@@ -28,9 +41,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## 2.1.0 - 2020-03-18
 
+> {note} After installing this update make sure to add the new Vend Order ID field to the Order field layout in Commerce > System Settings > Order Fields.
+
 ### Added
 - Added the ability to send an order to Vend from the CP order edit view.
-- Added a new Vend Order ID field - make sure to add this to the Order field layout in Commerce > System Settings > Order Fields.
+- Added a new Vend Order ID field.
 
 ### Changed
 - Now storing the Vend Order ID on the Commerce Order after registering a sale.
