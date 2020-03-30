@@ -284,19 +284,45 @@ class Vend extends Plugin
                 $feeds = FeedMe::$plugin->getFeeds();
                 $queue = Craft::$app->getQueue();
 
-                // Main product database import
-                if (StringHelper::contains($currentFeed->feedUrl, 'vend/products/list')) {
+                // Fast sync - main product db import
+                if (StringHelper::containsAll($currentFeed->feedUrl, ['vend/products/list', 'fastSyncLimit'])) {
 
-                    /** TODO
-                     * If this feed has had a modded URL with the cascadeToFast param set, then
-                     * we need to trigger the fast imports only otherwise run the inventory one
-                     * and when that finishes it will trigger the other full imports.
-                     */
+                    // Get the fastSyncLimit param out of the feed URL
+                    $parts = parse_url($currentFeed->feedUrl);
+                    parse_str($parts['query'], $query);
+                    $fastSyncLimit = $query['fastSyncLimit'];
 
-                    // So, trigger inventory or fast import depending on above
+                    // Trigger all the product import feeds but modify their URLs to be fast versions
                     foreach ($feeds->getFeeds() as $feed) {
 
-                        // Run inventory
+                        if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
+
+                            // Modify the feed URL to include the limit and inline inventory trigger
+                            $feed->feedUrl = UrlHelper::urlWithParams($feed->feedUrl, [
+                                'limit' => $fastSyncLimit,
+                                'inventory' => 1
+                            ]);
+
+                            $processedElementIds = [];
+
+                            $queue->delay(0)->push(new FeedImport([
+                                'feed' => $feed,
+                                'limit' => null,
+                                'offset' => null,
+                                'processedElementIds' => $processedElementIds,
+                            ]));
+
+                            $queue->run();
+                        }
+
+                    }
+
+                // Full sync - main product db import
+                } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/list')) {
+
+                    // Trigger inventory
+                    foreach ($feeds->getFeeds() as $feed) {
+
                         if (StringHelper::contains($feed->feedUrl, 'vend/products/inventory')) {
 
                             $processedElementIds = [];
@@ -308,16 +334,16 @@ class Vend extends Plugin
                                 'processedElementIds' => $processedElementIds,
                             ]));
 
-                            $queue->getQueue()->run();
+                            $queue->run();
 
                             break;
                         }
-
                     }
+
                 // Main inventory feed
                 } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/inventory')) {
 
-                    // So, trigger all of the full product import feeds
+                    // Trigger all of the full product import feeds
                     foreach ($feeds->getFeeds() as $feed) {
 
                         if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {

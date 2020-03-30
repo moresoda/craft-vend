@@ -119,10 +119,17 @@ class ProductsController extends Controller
         ];
 
         // Sort out the next URL
-        $nextUrl = UrlHelper::actionUrl('vend/products/list', [
+        $params = [
             'after' => $response['version']['max']
-        ]);
-        $return['nextUrl'] = $nextUrl;
+        ];
+
+        // Merge on fastSyncLimit if we need to
+        $fastSyncLimit = $request->getParam('fastSyncLimit');
+        if ($fastSyncLimit) {
+            $params['fastSyncLimit'] = $fastSyncLimit;
+        }
+
+        $return['nextUrl'] = UrlHelper::actionUrl('vend/products/list', $params);
 
         return $this->asJson($return);
     }
@@ -352,7 +359,7 @@ class ProductsController extends Controller
             return;
         }
 
-        // Make API call
+        // Make API call (if it has more than 500 stock entries then we’re in trouble)
         $response = $api->getResponse("2.0/products/{$productId}/inventory", ['page_size' => 500]);
 
         // Check if we got nothing back and bail

@@ -3,11 +3,11 @@
 <form method="post">
     {{ forms.textField({
         label: "Limit"|t('app'),
-        id: 'limit',
+        id: 'vend-fast-sync-limit',
         name: 'limit',
         value: 50,
         required: true,
     }) }}
 
-    <a class="btn submit">{{ 'Run fast sync'|t('vend') }}</a>
+    <input type="submit" class="btn submit" value="{{ 'Run fast sync'|t('vend') }}" />
 </form>

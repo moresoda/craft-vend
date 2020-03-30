@@ -39,9 +39,7 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
         this.$widget.addClass('loading');
         this.$btn.addClass('disabled');
 
-        this.$btn.addClass('active');
         Craft.postActionRequest('vend/feeds/run', {}, $.proxy(function(response, textStatus) {
-            this.$btn.removeClass('active');
             this.working = false;
             this.$widget.removeClass('loading');
             this.$btn.removeClass('disabled');

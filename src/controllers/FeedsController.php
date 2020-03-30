@@ -14,6 +14,7 @@ use Craft;
 use craft\feedme\Plugin as FeedMe;
 use craft\feedme\queue\jobs\FeedImport;
 use craft\helpers\StringHelper;
+use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use yii\web\BadRequestHttpException;
 use yii\web\Response;
@@ -43,11 +44,23 @@ class FeedsController extends Controller
 
         $feeds = FeedMe::$plugin->getFeeds();
         $queue = Craft::$app->getQueue();
+        $request = Craft::$app->getRequest();
 
         foreach ($feeds->getFeeds() as $feed) {
 
             // Hit the main import and bail
             if (StringHelper::contains($feed->feedUrl, 'vend/products/list')) {
+
+                // If we are running a fast import then pass in those params to
+                // the feed URL so they get picked up by the cascade logic
+                $fastSyncLimit = $request->getParam('fastSyncLimit');
+
+                if ($fastSyncLimit) {
+                    $feed->feedUrl = UrlHelper::urlWithParams($feed->feedUrl, [
+                        'fastSyncLimit' => $fastSyncLimit,
+                    ]);
+                }
+
                 $processedElementIds = [];
 
                 $queue->delay(0)->push(new FeedImport([

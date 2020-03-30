@@ -21,6 +21,7 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
         this.$widget = $('#widget' + this.settings.widgetId);
         this.$body = this.$widget.find('.body:first');
         this.$form = this.$body.find('form:first');
+        this.$limitInput = this.$form.find('input[name="limit"]:first');
         this.$btn = this.$body.find('.btn:first');
         this.initForm();
     },
@@ -41,11 +42,12 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
         this.$widget.addClass('loading');
         this.$btn.addClass('disabled');
 
-        // TODO: hook up limit and fast cascade params
+        var limit = this.$limitInput.val();
+        if (limit === '') {
+            limit = 50;
+        }
 
-        this.$btn.addClass('active');
-        Craft.postActionRequest('vend/feeds/run', {}, $.proxy(function(response, textStatus) {
-            this.$btn.removeClass('active');
+        Craft.postActionRequest('vend/feeds/run', {'fastSyncLimit': limit}, $.proxy(function(response, textStatus) {
             this.working = false;
             this.$widget.removeClass('loading');
             this.$btn.removeClass('disabled');
@@ -53,7 +55,7 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
             if (textStatus === 'success') {
                 if (response.success) {
                     Craft.cp.runQueue();
-                    Craft.cp.displayNotice('Full sync started.');
+                    Craft.cp.displayNotice('Fast sync started.');
                 } else if (response.error) {
                     Craft.cp.displayError(response.error);
                 } else {
