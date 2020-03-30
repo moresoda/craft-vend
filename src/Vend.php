@@ -77,7 +77,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '2.2.1';
+    public $schemaVersion = '2.2.4';
 
     // Public Methods
     // =========================================================================
@@ -290,12 +290,13 @@ class Vend extends Plugin
                 $queue = Craft::$app->getQueue();
 
                 // Fast sync - main product db import
-                if (StringHelper::containsAll($currentFeed->feedUrl, ['vend/products/list', 'fastSyncLimit'])) {
+                if (StringHelper::containsAll($currentFeed->feedUrl, ['vend/products/list', 'fastSyncLimit', 'fastSyncOrder'])) {
 
-                    // Get the fastSyncLimit param out of the feed URL
+                    // Get the fastSyncLimit and fastSyncOrder params out of the feed URL
                     $parts = parse_url($currentFeed->feedUrl);
                     parse_str($parts['query'], $query);
                     $fastSyncLimit = $query['fastSyncLimit'];
+                    $fastSyncOrder = $query['fastSyncOrder'];
 
                     // Trigger all the product import feeds but modify their URLs to be fast versions
                     $runQueue = false;
@@ -303,10 +304,11 @@ class Vend extends Plugin
 
                         if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
 
-                            // Modify the feed URL to include the limit and inline inventory trigger
+                            // Modify the feed URL to include the limit, order and inline inventory trigger
                             $feed->feedUrl = UrlHelper::urlWithParams($feed->feedUrl, [
                                 'limit' => $fastSyncLimit,
-                                'inventory' => 1
+                                'inventory' => 1,
+                                'order' => $fastSyncOrder
                             ]);
 
                             $processedElementIds = [];

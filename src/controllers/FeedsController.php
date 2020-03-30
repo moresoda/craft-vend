@@ -54,10 +54,12 @@ class FeedsController extends Controller
                 // If we are running a fast import then pass in those params to
                 // the feed URL so they get picked up by the cascade logic
                 $fastSyncLimit = $request->getParam('fastSyncLimit');
+                $fastSyncOrder = $request->getParam('fastSyncOrder');
 
                 if ($fastSyncLimit) {
                     $feed->feedUrl = UrlHelper::urlWithParams($feed->feedUrl, [
                         'fastSyncLimit' => $fastSyncLimit,
+                        'fastSyncOrder' => $fastSyncOrder,
                     ]);
                 }
 

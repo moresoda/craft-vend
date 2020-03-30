@@ -1,7 +1,24 @@
 {% import "_includes/forms" as forms %}
 
 <form method="post" accept-charset="UTF-8">
-    <p class="light">Runs a fast sync of the most recent products in the Vend inventory.</p>
+    <p class="light">Runs a fast sync of the products most recently added or updated in the Vend inventory.</p>
+
+    {{ forms.selectField({
+        label: "Order"|t('app'),
+        id: 'vend-fast-sync-order',
+        name: 'order',
+        value: 'vendDateCreated',
+        options: [
+            {
+                label: 'Date Created',
+                value: 'vendDateCreated'
+            },
+            {
+                label: 'Date Updated',
+                value: 'vendDateUpdated'
+            }
+        ],
+    }) }}
 
     {{ forms.textField({
         label: "Limit"|t('app'),
