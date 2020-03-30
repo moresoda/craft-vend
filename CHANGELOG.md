@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+
+## 2.2.2 - 2020-03-30
+
+### Fixed
+- Fixed changelog for 2.2.0.
+
+
 ## 2.2.1 - 2020-03-30
 
 ### Fixed
@@ -16,6 +23,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## 2.2.0 - 2020-03-30
 
 > {note} After installing this update make sure to add the new Vend Date Updated field to the field layout on the Vend Products section.
+> {note} You will also need to map the new Vend Date Updated field in the Vend products Feed Me feed - this should be set to the `dateUpdated/date` option on the element mapping screen.
 
 ### Added
 - Added a new Vend Date Updated field to the Vend Products section and modified the product import API to sort by date updated.
