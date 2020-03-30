@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.2.3 - 2020-03-30
+
+### Fixed
+- Fixed an issue where the Commerce product feeds wouldn’t cascade as quickly as they could.
+
+
 ## 2.2.2 - 2020-03-30
 
 ### Fixed

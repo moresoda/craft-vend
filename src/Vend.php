@@ -298,6 +298,7 @@ class Vend extends Plugin
                     $fastSyncLimit = $query['fastSyncLimit'];
 
                     // Trigger all the product import feeds but modify their URLs to be fast versions
+                    $runQueue = false;
                     foreach ($feeds->getFeeds() as $feed) {
 
                         if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
@@ -317,9 +318,13 @@ class Vend extends Plugin
                                 'processedElementIds' => $processedElementIds,
                             ]));
 
-                            $queue->run();
+                            $runQueue = true;
                         }
 
+                    }
+
+                    if ($runQueue) {
+                        $queue->run();
                     }
 
                 // Full sync - main product db import
@@ -349,8 +354,8 @@ class Vend extends Plugin
                 } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/inventory')) {
 
                     // Trigger all of the full product import feeds
+                    $runQueue = false;
                     foreach ($feeds->getFeeds() as $feed) {
-
                         if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
                             $processedElementIds = [];
 
@@ -360,10 +365,13 @@ class Vend extends Plugin
                                 'offset' => null,
                                 'processedElementIds' => $processedElementIds,
                             ]));
-
-                            $queue->run();
                         }
 
+                        $runQueue = true;
+                    }
+
+                    if ($runQueue) {
+                        $queue->run();
                     }
                 }
 
