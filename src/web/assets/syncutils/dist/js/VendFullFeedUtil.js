@@ -8,10 +8,9 @@ if (typeof Craft.Vend === typeof undefined) {
     Craft.Vend = {};
 }
 
-Craft.Vend.FullFeedWidget = Garnish.Base.extend({
+Craft.Vend.FullFeedUtil = Garnish.Base.extend({
 
-    $widget: null,
-    $body: null,
+    $pane: null,
     $form: null,
     $btn: null,
     working: false,
@@ -19,9 +18,8 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
     init: function(settings) {
         this.setSettings(settings, this.defaults);
 
-        this.$widget = $('#widget' + this.settings.widgetId);
-        this.$body = this.$widget.find('.body:first');
-        this.$form = this.$body.find('form:first');
+        this.$pane = $('#vend-syncutils-full');
+        this.$form = this.$pane.find('form:first');
         this.$btn = this.$form.find('.btn:first');
         this.initForm();
     },
@@ -39,12 +37,12 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
         }
 
         this.working = true;
-        this.$widget.addClass('loading');
+        this.$pane.addClass('loading');
         this.$btn.addClass('disabled');
 
         Craft.postActionRequest('vend/feeds/run', {}, $.proxy(function(response, textStatus) {
             this.working = false;
-            this.$widget.removeClass('loading');
+            this.$pane.removeClass('loading');
             this.$btn.removeClass('disabled');
 
             if (textStatus === 'success') {

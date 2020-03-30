@@ -1,1 +1,5 @@
-<a class="btn submit">{{ 'Run full sync'|t('vend') }}</a>
+<form method="post" accept-charset="UTF-8">
+    <p class="light">Runs a full sync of all products in the Vend inventory.</p>
+    <p class="light">Depending on how many products you have in Vend this could take a while.</p>
+    <input type="submit" class="btn submit" value="{{ 'Run now'|t('vend') }}" />
+</form>

@@ -8,20 +8,20 @@ if (typeof Craft.Vend === typeof undefined) {
     Craft.Vend = {};
 }
 
-Craft.Vend.FullFeedWidget = Garnish.Base.extend({
+Craft.Vend.FastFeedUtil = Garnish.Base.extend({
 
-    $widget: null,
-    $body: null,
+    $pane: null,
     $form: null,
+    $limitInput: null,
     $btn: null,
     working: false,
 
     init: function(settings) {
         this.setSettings(settings, this.defaults);
 
-        this.$widget = $('#widget' + this.settings.widgetId);
-        this.$body = this.$widget.find('.body:first');
-        this.$form = this.$body.find('form:first');
+        this.$pane = $('#vend-syncutils-fast');
+        this.$form = this.$pane.find('form:first');
+        this.$limitInput = this.$form.find('input[name="limit"]:first');
         this.$btn = this.$form.find('.btn:first');
         this.initForm();
     },
@@ -39,18 +39,23 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
         }
 
         this.working = true;
-        this.$widget.addClass('loading');
+        this.$pane.addClass('loading');
         this.$btn.addClass('disabled');
 
-        Craft.postActionRequest('vend/feeds/run', {}, $.proxy(function(response, textStatus) {
+        var limit = this.$limitInput.val();
+        if (limit === '') {
+            limit = 50;
+        }
+
+        Craft.postActionRequest('vend/feeds/run', {'fastSyncLimit': limit}, $.proxy(function(response, textStatus) {
             this.working = false;
-            this.$widget.removeClass('loading');
+            this.$pane.removeClass('loading');
             this.$btn.removeClass('disabled');
 
             if (textStatus === 'success') {
                 if (response.success) {
                     Craft.cp.runQueue();
-                    Craft.cp.displayNotice('Full sync started.');
+                    Craft.cp.displayNotice('Fast sync started.');
                 } else if (response.error) {
                     Craft.cp.displayError(response.error);
                 } else {
@@ -60,7 +65,5 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
         }, this));
     },
 
-    defaults: {
-        widgetId: null
-    }
+    defaults: {}
 });

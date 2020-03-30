@@ -122,6 +122,11 @@ class Vend extends Plugin
 
         $ret['label'] = Craft::t('vend', 'Vend');
 
+        $ret['subnav']['sync'] = [
+            'label' => Craft::t('vend', 'Sync'),
+            'url' => 'vend/sync'
+        ];
+
         $ret['subnav']['parked-sales'] = [
             'label' => Craft::t('vend', 'Parked Sales'),
             'url' => 'vend/parked-sales'

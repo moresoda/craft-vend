@@ -1,0 +1,88 @@
+{# @var craft \craft\web\twig\variables\CraftVariable #}
+{#
+/**
+ * Vend plugin for Craft Commerce
+ *
+ * Connect your Craft Commerce store to Vend POS.
+ *
+ * @author    Angell & Co
+ * @copyright Copyright (c) 2019 Angell & Co
+ * @link      https://angell.io
+ * @package   Vend
+ * @since     2.0.0
+ */
+#}
+
+{% extends "_layouts/cp" %}
+{% set title = "Sync with Vend"|t('vend') %}
+{% set selectedSubnavItem = 'sync' %}
+
+{% import "_includes/forms" as forms %}
+
+{% set crumbs = [
+    { label: "Vend"|t('vend'), url: url('vend') }
+] %}
+
+{% do view.registerAssetBundle("angellco\\vend\\web\\assets\\syncutils\\SyncUtilsAsset") %}
+
+{% js %}
+    new Craft.Vend.FullFeedUtil();
+    new Craft.Vend.FastFeedUtil();
+{% endjs %}
+
+{% css %}
+    .vend-utils .pane > h2 {
+        margin-top: 0;
+    }
+    .vend-utils .pane > .spinner.body-loading {
+        display: none;
+    }
+    .vend-utils .pane.loading > .spinner.body-loading {
+        display: block;
+    }
+    body.ltr .vend-utils .pane.loading > .spinner.body-loading {
+        float: right;
+    }
+    body.ltr .vend-utils .pane.loading > .spinner.body-loading {
+        margin-left: 10px;
+    }
+    body.rtl .vend-utils .pane.loading > .spinner.body-loading {
+        float: left;
+    }
+    body.rtl .vend-utils .pane.loading > .spinner.body-loading {
+        margin-right: 10px;
+    }
+{% endcss %}
+
+{% block main %}
+    <div class="vend-utils grid">
+        <div class="item" data-colspan="1">
+            <div class="pane" id="vend-syncutils-full">
+                <div class="spinner body-loading"></div>
+                <h2>Full</h2>
+                <form method="post" accept-charset="UTF-8">
+                    <p class="light">Runs a full sync of all products in the Vend inventory.</p>
+                    <p class="light">Depending on how many products you have in Vend this could take a while.</p>
+                    <input type="submit" class="btn submit" value="Run now">
+                </form>
+            </div>
+        </div>
+        <div class="item" data-colspan="1">
+            <div class="pane" id="vend-syncutils-fast">
+                <div class="spinner body-loading"></div>
+                <h2>Fast</h2>
+                <form method="post" accept-charset="UTF-8">
+                    <p class="light">Runs a fast sync of the most recent products in the Vend inventory.</p>
+                    {{ forms.textField({
+                        label: "Limit"|t('app'),
+                        id: 'vend-fast-sync-limit',
+                        name: 'limit',
+                        value: 50,
+                        required: true,
+                    }) }}
+                    <input type="submit" class="btn submit" value="Run now">
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

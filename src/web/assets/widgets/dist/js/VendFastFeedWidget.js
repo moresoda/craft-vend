@@ -12,6 +12,8 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
 
     $widget: null,
     $body: null,
+    $form: null,
+    $limitInput: null,
     $btn: null,
     working: false,
 
@@ -22,7 +24,7 @@ Craft.Vend.FastFeedWidget = Garnish.Base.extend({
         this.$body = this.$widget.find('.body:first');
         this.$form = this.$body.find('form:first');
         this.$limitInput = this.$form.find('input[name="limit"]:first');
-        this.$btn = this.$body.find('.btn:first');
+        this.$btn = this.$form.find('.btn:first');
         this.initForm();
     },
 
