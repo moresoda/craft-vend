@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.2.5 - 2020-03-31
+
+### Added
+- Added `preRunAction` config variable that lets you trigger a POST request to an action of your choice before the run feed action is called. The action requested must return JSON with `success:true` in the payload for it to continue.
+
+
 ## 2.2.4 - 2020-03-30
 
 > {note} After installing this update make sure to add the new Vend Date Created field to the field layout on the Vend Products section.
