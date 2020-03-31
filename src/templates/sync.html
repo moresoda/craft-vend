@@ -25,9 +25,15 @@
 
 {% do view.registerAssetBundle("angellco\\vend\\web\\assets\\syncutils\\SyncUtilsAsset") %}
 
+{% set settings = craft.app.getConfig().getConfigFromFile('vend') %}
+
 {% js %}
-    new Craft.Vend.FullFeedUtil();
-    new Craft.Vend.FastFeedUtil();
+    new Craft.Vend.FullFeedUtil({
+        preRunAction : "{{ settings['preRunAction'] ?? null }}"
+    });
+    new Craft.Vend.FastFeedUtil({
+        preRunAction : "{{ settings['preRunAction'] ?? null }}"
+    });
 {% endjs %}
 
 {% css %}

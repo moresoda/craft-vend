@@ -16,6 +16,8 @@ Craft.Vend.FastFeedUtil = Garnish.Base.extend({
     $limitInput: null,
     $btn: null,
     working: false,
+    limit: null,
+    order: null,
 
     init: function(settings) {
         this.setSettings(settings, this.defaults);
@@ -44,19 +46,43 @@ Craft.Vend.FastFeedUtil = Garnish.Base.extend({
         this.$pane.addClass('loading');
         this.$btn.addClass('disabled');
 
-        var limit = this.$limitInput.val();
-        if (limit === '') {
-            limit = 50;
+        this.limit = this.$limitInput.val();
+        if (this.limit === '') {
+            this.limit = 50;
         }
 
-        var order = this.$orderInput.val();
-        if (order === '') {
-            order = 'vendDateUpdated';
+        this.order = this.$orderInput.val();
+        if (this.order === '') {
+            this.order = 'vendDateUpdated';
         }
 
+        if (this.settings.preRunAction !== "") {
+            Craft.postActionRequest(this.settings.preRunAction, {}, $.proxy(function(response, textStatus) {
+                this.working = false;
+                this.$pane.removeClass('loading');
+                this.$btn.removeClass('disabled');
+
+                if (textStatus === 'success') {
+                    if (response.success) {
+                        this.run();
+                    } else if (response.error) {
+                        Craft.cp.displayError(response.error);
+                    } else {
+                        Craft.cp.displayError('Couldn’t trigger pre-sync operation.');
+                    }
+                } else {
+                    Craft.cp.displayError('Couldn’t trigger pre-sync operation.');
+                }
+            }, this));
+        } else {
+            this.run();
+        }
+    },
+
+    run: function() {
         Craft.postActionRequest('vend/feeds/run', {
-            'fastSyncLimit': limit,
-            'fastSyncOrder': order
+            'fastSyncLimit': this.limit,
+            'fastSyncOrder': this.order
         }, $.proxy(function(response, textStatus) {
             this.working = false;
             this.$pane.removeClass('loading');
@@ -71,9 +97,13 @@ Craft.Vend.FastFeedUtil = Garnish.Base.extend({
                 } else {
                     Craft.cp.displayError('Couldn’t start sync operation.');
                 }
+            } else {
+                Craft.cp.displayError('Couldn’t start sync operation.');
             }
         }, this));
     },
 
-    defaults: {}
+    defaults: {
+        preRunAction: ""
+    }
 });
