@@ -53,7 +53,11 @@ class FastFeed extends Widget
     {
         $view = Craft::$app->getView();
         $view->registerAssetBundle(WidgetsAsset::class);
-        $view->registerJs('new Craft.Vend.FastFeedWidget({widgetId:'.$this->id.'});');
+
+        $settings = Craft::$app->getConfig()->getConfigFromFile('vend');
+        $preRunAction = $settings['preRunAction'] ?? null;
+        $view->registerJs('new Craft.Vend.FastFeedWidget({widgetId:'.$this->id.',preRunAction:"'.$preRunAction.'"});');
+
         return $view->renderTemplate('vend/widgets/feeds/fast/body');
     }
 

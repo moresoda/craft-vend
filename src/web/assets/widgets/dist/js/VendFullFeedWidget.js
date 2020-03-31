@@ -42,6 +42,30 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
         this.$widget.addClass('loading');
         this.$btn.addClass('disabled');
 
+        if (this.settings.preRunAction !== "") {
+            Craft.postActionRequest(this.settings.preRunAction, {}, $.proxy(function(response, textStatus) {
+                this.working = false;
+                this.$widget.removeClass('loading');
+                this.$btn.removeClass('disabled');
+
+                if (textStatus === 'success') {
+                    if (response.success) {
+                        this.run();
+                    } else if (response.error) {
+                        Craft.cp.displayError(response.error);
+                    } else {
+                        Craft.cp.displayError('Couldn’t trigger pre-sync operation.');
+                    }
+                } else {
+                    Craft.cp.displayError('Couldn’t trigger pre-sync operation.');
+                }
+            }, this));
+        } else {
+            this.run();
+        }
+    },
+
+    run: function() {
         Craft.postActionRequest('vend/feeds/run', {}, $.proxy(function(response, textStatus) {
             this.working = false;
             this.$widget.removeClass('loading');
@@ -61,6 +85,7 @@ Craft.Vend.FullFeedWidget = Garnish.Base.extend({
     },
 
     defaults: {
-        widgetId: null
+        widgetId: null,
+        preRunAction: ""
     }
 });
