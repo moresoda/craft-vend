@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.2.6 - 2020-04-03
+
+### Fixed
+- Fixed an issue with more recent versions of Craft and fetching products from the Entries channel to import.
+
+
 ## 2.2.5 - 2020-03-31
 
 ### Added
