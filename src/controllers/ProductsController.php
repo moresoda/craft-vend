@@ -172,7 +172,7 @@ class ProductsController extends Controller
             'section' => 'vendProducts',
             'orderBy' => $order.' desc',
             // Exclude variants
-            'vendProductIsVariant' => 'not 1'
+            'vendProductIsVariant' => false
         ];
         Craft::configure($query, $criteria);
 
@@ -217,7 +217,7 @@ class ProductsController extends Controller
                     'limit' => null,
                     'section' => 'vendProducts',
                     'vendProductVariantParentId' => $rawProduct->vendProductId,
-                    'vendProductIsVariant' => '1'
+                    'vendProductIsVariant' => true
                 ];
                 Craft::configure($variantQuery, $variantCriteria);
 
