@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.3.0 - 2020-04-03
+
+### Changed
+- Moved the register sale trigger to a queue job delayed by 30s, this should clean up most race condition circumstances when the order saving gets delayed after purchase.
+
+
 ## 2.2.6 - 2020-04-03
 
 ### Fixed
