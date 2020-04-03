@@ -12,6 +12,7 @@ namespace angellco\vend;
 
 use angellco\vend\models\Settings;
 use angellco\vend\oauth\providers\VendVenveo as VendProvider;
+use angellco\vend\queue\jobs\RegisterSale;
 use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
@@ -199,10 +200,14 @@ class Vend extends Plugin
             Event::on(
                 Order::class,
                 Order::EVENT_AFTER_COMPLETE_ORDER,
-                function(Event $e) {
+                static function(Event $e) {
                     /** @var Order $order */
                     $order = $e->sender;
-                    $this->orders->registerSale($order->id);
+                    $queue = Craft::$app->getQueue();
+                    $queue->delay(30)->push(new RegisterSale([
+                        'orderId' => $order->id
+                    ]));
+                    $queue->run();
                 }
             );
         }
