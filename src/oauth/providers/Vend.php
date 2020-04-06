@@ -75,10 +75,12 @@ class Vend extends AbstractProvider
      */
     public function getBaseAccessTokenUrl(array $params): string
     {
-        $domainPrefixParam = Craft::$app->getRequest()->getQueryParam('domain_prefix');
-
-        if ($domainPrefixParam) {
-            $this->domainPrefix = $domainPrefixParam;
+        // If this is not a console request, check for the query domain_prefix param
+        if (!Craft::$app->getRequest()->isConsoleRequest) {
+            $domainPrefixParam = Craft::$app->getRequest()->getQueryParam('domain_prefix');
+            if ($domainPrefixParam) {
+                $this->domainPrefix = $domainPrefixParam;
+            }
         }
 
         return $this->getApiUrl('1.0/token');
@@ -152,9 +154,10 @@ class Vend extends AbstractProvider
      * Generates a resource owner object from a successful resource owner
      * details request.
      *
-     * @param  array $response
-     * @param  AccessToken $token
-     * @return ResourceOwnerInterface
+     * @param array       $response
+     * @param AccessToken $token
+     *
+     * @return ResourceOwnerInterface|void
      */
     protected function createResourceOwner(array $response, AccessToken $token) {
         throw new \RuntimeException('Vend does not allow access to the resource owners.');
