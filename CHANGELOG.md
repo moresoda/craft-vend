@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.3.1 - 2020-04-06
+
+### Fixed
+- Fixed an issue where API requests running via the console couldn’t refresh the access token if needed.
+
+
 ## 2.3.0 - 2020-04-03
 
 ### Changed
