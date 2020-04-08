@@ -229,29 +229,42 @@ class Vend extends Plugin
                             // Check its completed
                             if ($order->isCompleted) {
 
-                                // Check its a Vend Order as well
-                                $firstLineItem = $order->getLineItems()[0];
-                                if (is_a($firstLineItem->getPurchasable(), Variant::class)) {
-                                    if ($vendOrderIdField instanceof PreviewableFieldInterface) {
-                                        // Was this field value eager-loaded?
-                                        if ($vendOrderIdField instanceof EagerLoadingFieldInterface && $order->hasEagerLoadedElements($vendOrderIdField->handle)) {
-                                            $value = $order->getEagerLoadedElements($vendOrderIdField->handle);
-                                        } else {
-                                            // The field might not actually belong to this element
-                                            try {
-                                                $value = $order->getFieldValue($vendOrderIdField->handle);
-                                            } catch (\Throwable $e) {
-                                                $value = $vendOrderIdField->normalizeValue(null);
-                                            }
-                                        }
+                                $isVendOrder = false;
+                                $vendOrderId = false;
 
-                                        // If we have a value, show the link
-                                        if ($value) {
-                                            $e->html = "<a href='https://{$this->getSettings()->domainPrefix}.vendhq.com/redirect/1.0/sales/{$value}?action=view' class='go' target='_blank'>View on Vend</a>";
-                                        } else {
-                                            // If we don’t, show an error
-                                            $e->html = "<span class='error'>Not yet on Vend</span>";
+                                // First check if we have an Vend Order ID - if we do, then its
+                                // definitely a Vend order...
+                                if ($vendOrderIdField instanceof PreviewableFieldInterface) {
+                                    // Was this field value eager-loaded?
+                                    if ($vendOrderIdField instanceof EagerLoadingFieldInterface && $order->hasEagerLoadedElements($vendOrderIdField->handle)) {
+                                        $vendOrderId = $order->getEagerLoadedElements($vendOrderIdField->handle);
+                                    } else {
+                                        // The field might not actually belong to this element
+                                        try {
+                                            $vendOrderId = $order->getFieldValue($vendOrderIdField->handle);
+                                        } catch (\Throwable $e) {
+                                            $vendOrderId = $vendOrderIdField->normalizeValue(null);
                                         }
+                                    }
+                                }
+
+                                // Check its a Vend Order from line item data if we have no Vend Order ID
+                                if ($vendOrderId) {
+                                    $isVendOrder = true;
+                                } else {
+                                    $firstLineItem = $order->getLineItems()[0];
+                                    if (is_a($firstLineItem->getPurchasable(), Variant::class)) {
+                                        $isVendOrder = true;
+                                    }
+                                }
+
+                                if ($isVendOrder) {
+                                    // If we have an ID, show the link
+                                    if ($vendOrderId) {
+                                        $e->html = "<a href='https://{$this->getSettings()->domainPrefix}.vendhq.com/redirect/1.0/sales/{$vendOrderId}?action=view' class='go' target='_blank'>View on Vend</a>";
+                                    } else {
+                                        // If we don’t, show an error
+                                        $e->html = "<span class='error'>Not yet on Vend</span>";
                                     }
                                 } else {
                                     $e->html = 'Not a Vend Order.';
