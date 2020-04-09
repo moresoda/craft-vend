@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.3.3 - 2020-04-09
+
+### Fixed
+- Fixed the issue where API requests running via the console couldn’t refresh the access token if needed - again.
+
+
+## 2.3.2 - 2020-04-08
+
+### Fixed
+- Fixed an issue where if Vend orders contained products that had been deleted they may start showing up as "Not a Vend order" in the order index.
+
+
 ## 2.3.1 - 2020-04-06
 
 ### Fixed
