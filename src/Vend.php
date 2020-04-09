@@ -182,18 +182,20 @@ class Vend extends Plugin
         );
 
         // Save the domain prefix into the plugin settings
-        Event::on(
-            Tokens::class,
-            Tokens::EVENT_BEFORE_TOKEN_SAVED,
-            static function (TokenEvent $e) {
-                $domainPrefix = Craft::$app->getRequest()->getQueryParam('domain_prefix');
-                if ($domainPrefix) {
-                    Craft::$app->getPlugins()->savePluginSettings(self::$plugin, [
-                        'domainPrefix' => $domainPrefix
-                    ]);
+        if (!Craft::$app->getRequest()->isConsoleRequest) {
+            Event::on(
+                Tokens::class,
+                Tokens::EVENT_BEFORE_TOKEN_SAVED,
+                static function(TokenEvent $e) {
+                    $domainPrefix = Craft::$app->getRequest()->getQueryParam('domain_prefix');
+                    if ($domainPrefix) {
+                        Craft::$app->getPlugins()->savePluginSettings(self::$plugin, [
+                            'domainPrefix' => $domainPrefix
+                        ]);
+                    }
                 }
-            }
-        );
+            );
+        }
 
         // Bind to the order complete event so we can register the sale with Vend
         if ($this->getSettings()->vend_registerSales) {
