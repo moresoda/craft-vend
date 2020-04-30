@@ -256,21 +256,33 @@ class Orders extends Component
 
         }
 
-        // Process the active shipping rule
-        $shippingMethod = $order->getShippingMethod();
-        if ($shippingMethod) {
-            $shippingRule = $shippingMethod->getMatchingShippingRule($order);
-            if ($shippingRule && isset($settings->shippingMap['rules'][$shippingRule->id])) {
+        // Work out if we need free shipping for the whole order because of a discount
+        $orderLevelFreeShipping = false;
+        foreach ($order->getAdjustmentsByType('discount') as $discountAdjustment) {
+            $snapshot = $discountAdjustment->getSourceSnapshot();
+            if (isset($snapshot['hasFreeShippingForOrder']) && $snapshot['hasFreeShippingForOrder'] === '1') {
+                $orderLevelFreeShipping = true;
+            }
 
-                $ruleSettings = $settings->shippingMap['rules'][$shippingRule->id];
+        }
 
-                $data['register_sale_products'][] = [
-                    'product_id' => $ruleSettings['productId'],
-                    'quantity' => 1,
-                    'price' => $ruleSettings['productPrice']['excludingTax'],
-                    'tax' => bcsub($ruleSettings['productPrice']['includingTax'], $ruleSettings['productPrice']['excludingTax'], 5),
-                    'tax_id' => $ruleSettings['taxId']
-                ];
+        // Process the active shipping rule if there is no order level free shipping applied
+        if (!$orderLevelFreeShipping) {
+            $shippingMethod = $order->getShippingMethod();
+            if ($shippingMethod) {
+                $shippingRule = $shippingMethod->getMatchingShippingRule($order);
+                if ($shippingRule && isset($settings->shippingMap['rules'][$shippingRule->id])) {
+
+                    $ruleSettings = $settings->shippingMap['rules'][$shippingRule->id];
+
+                    $data['register_sale_products'][] = [
+                        'product_id' => $ruleSettings['productId'],
+                        'quantity' => 1,
+                        'price' => $ruleSettings['productPrice']['excludingTax'],
+                        'tax' => bcsub($ruleSettings['productPrice']['includingTax'], $ruleSettings['productPrice']['excludingTax'], 5),
+                        'tax_id' => $ruleSettings['taxId']
+                    ];
+                }
             }
         }
 
