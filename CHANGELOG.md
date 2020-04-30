@@ -8,21 +8,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
-## 2.3.4 - 2020-04-30
+## 2.3.3 - 2020-04-30
 
 ### Fixed
 - Fixed an issue where discounts that removed all shipping costs from the order were not removing shipping costs from the order in Vend.
 
 
-## 2.3.3 - 2020-04-09
-
-### Fixed
-- Fixed the issue where API requests running via the console couldn’t refresh the access token if needed - again.
-
-
 ## 2.3.2 - 2020-04-08
 
 ### Fixed
+- Fixed the issue where API requests running via the console couldn’t refresh the access token if needed - again.
 - Fixed an issue where if Vend orders contained products that had been deleted they may start showing up as "Not a Vend order" in the order index.
 
 
