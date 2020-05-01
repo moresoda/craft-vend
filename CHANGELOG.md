@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.3.4 - 2020-05-01
+
+### Fixed
+- Fixed an issue where composite products from Vend weren’t getting any stock on sync.
+
+
 ## 2.3.3 - 2020-04-30
 
 ### Fixed
