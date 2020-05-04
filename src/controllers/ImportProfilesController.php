@@ -48,8 +48,7 @@ class ImportProfilesController extends Controller
      */
     public function init()
     {
-        $this->requireAdmin();
-
+        $this->requirePermission('vend:settings:import-profiles');
         parent::init();
     }
 
@@ -215,12 +214,10 @@ class ImportProfilesController extends Controller
      * @throws Exception
      * @throws NotSupportedException
      * @throws BadRequestHttpException
-     * @throws ForbiddenHttpException
      * @throws ServerErrorHttpException
      */
     public function actionSave()
     {
-        $this->requireAdmin();
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
@@ -255,13 +252,11 @@ class ImportProfilesController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException
-     * @throws ForbiddenHttpException
      */
     public function actionDelete(): Response
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $this->requireAdmin();
 
         $profileId = Craft::$app->getRequest()->getRequiredBodyParam('id');
 

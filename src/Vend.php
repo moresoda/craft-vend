@@ -29,6 +29,7 @@ use craft\commerce\elements\Order;
 use craft\commerce\elements\Variant;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
 use craft\feedme\events\FeedProcessEvent;
 use craft\feedme\models\FeedModel;
 use craft\feedme\Plugin as FeedMe;
@@ -38,6 +39,7 @@ use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\log\FileTarget;
 use craft\services\Dashboard;
+use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use venveo\oauthclient\events\TokenEvent;
 use venveo\oauthclient\services\Providers;
@@ -117,30 +119,40 @@ class Vend extends Plugin
     /**
      * @inheritdoc
      */
-    public function getCpNavItem(): array
+    public function getCpNavItem()
     {
-        $ret = parent::getCpNavItem();
+        $currentUser = Craft::$app->getUser()->getIdentity();
 
-        $ret['label'] = Craft::t('vend', 'Vend');
+        if ($currentUser->can('vend:parked-sales') || $currentUser->can('vend:sync') || $currentUser->can('vend:settings')) {
+            $ret = parent::getCpNavItem();
+            $ret['label'] = Craft::t('vend', 'Vend');
 
-        $ret['subnav']['sync'] = [
-            'label' => Craft::t('vend', 'Sync'),
-            'url' => 'vend/sync'
-        ];
+            // Only show sub-navs the user has permission to view
+            if ($currentUser->can('vend:sync')) {
+                $ret['subnav']['sync'] = [
+                    'label' => Craft::t('vend', 'Sync'),
+                    'url' => 'vend/sync'
+                ];
+            }
 
-        $ret['subnav']['parked-sales'] = [
-            'label' => Craft::t('vend', 'Parked Sales'),
-            'url' => 'vend/parked-sales'
-        ];
+            if ($currentUser->can('vend:parked-sales')) {
+                $ret['subnav']['parked-sales'] = [
+                    'label' => Craft::t('vend', 'Parked Sales'),
+                    'url' => 'vend/parked-sales'
+                ];
+            }
 
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $ret['subnav']['settings'] = [
-                'label' => Craft::t('app', 'Settings'),
-                'url' => 'vend/settings'
-            ];
+            if ($currentUser->can('vend:settings') && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+                $ret['subnav']['settings'] = [
+                    'label' => Craft::t('app', 'Settings'),
+                    'url' => 'vend/settings'
+                ];
+            }
+
+            return $ret;
         }
 
-        return $ret;
+        return null;
     }
 
     // Protected Methods
@@ -151,6 +163,45 @@ class Vend extends Plugin
      */
     protected function installEventListeners()
     {
+        // User permissions
+        Event::on(
+            UserPermissions::class,
+            UserPermissions::EVENT_REGISTER_PERMISSIONS,
+            static function(RegisterUserPermissionsEvent $event) {
+                $event->permissions['Vend'] = [
+                    'vend:sync' => [
+                        'label' => 'Sync',
+                    ],
+                    'vend:parked-sales' => [
+                        'label' => 'Parked Sales',
+                    ],
+                    'vend:settings' => [
+                        'label' => 'Settings',
+                        'nested' => [
+                            'vend:settings:import-profiles' => [
+                                'label' => 'Import Profiles',
+                            ],
+                            'vend:settings:webhooks' => [
+                                'label' => 'Webhooks',
+                            ],
+                            'vend:settings:feed-me' => [
+                                'label' => 'Feed Me',
+                            ],
+                            'vend:settings:shipping' => [
+                                'label' => 'Shipping',
+                            ],
+                            'vend:settings:tax' => [
+                                'label' => 'Tax',
+                            ],
+                            'vend:settings:general' => [
+                                'label' => 'General Settings',
+                            ],
+                        ]
+                    ]
+                ];
+            }
+        );
+
         // Register our CP routes
         Event::on(
             UrlManager::class,

@@ -44,8 +44,7 @@ class SettingsController extends Controller
      */
     public function init()
     {
-        $this->requireAdmin();
-
+        $this->requirePermission('vend:settings');
         parent::init();
     }
 
@@ -53,9 +52,12 @@ class SettingsController extends Controller
      * Edit general settings.
      *
      * @return Response
+     * @throws ForbiddenHttpException
      */
     public function actionEdit(): Response
     {
+        $this->requirePermission('vend:settings:general');
+
         $variables = [
             'oauthAppMissing' => false,
             'oauthToken' => null,
@@ -234,9 +236,11 @@ class SettingsController extends Controller
      * @return Response
      * @throws MissingComponentException
      * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionSave(): Response
     {
+        $this->requirePermission('vend:settings:general');
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
@@ -274,9 +278,11 @@ class SettingsController extends Controller
      * Edit tax settings.
      *
      * @return Response
+     * @throws ForbiddenHttpException
      */
     public function actionEditTax(): Response
     {
+        $this->requirePermission('vend:settings:tax');
         $variables = [
             'oauthAppMissing' => false,
             'oauthToken' => null,
@@ -331,9 +337,11 @@ class SettingsController extends Controller
      * @return Response
      * @throws MissingComponentException
      * @throws BadRequestHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionSaveTax(): Response
     {
+        $this->requirePermission('vend:settings:general');
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
@@ -363,9 +371,11 @@ class SettingsController extends Controller
      * Edit shipping settings.
      *
      * @return Response
+     * @throws ForbiddenHttpException
      */
     public function actionEditShipping(): Response
     {
+        $this->requirePermission('vend:settings:shipping');
         $variables = [
             'oauthAppMissing' => false,
             'oauthToken' => null,
@@ -446,9 +456,11 @@ class SettingsController extends Controller
      * @return Response
      * @throws BadRequestHttpException
      * @throws IdentityProviderException
+     * @throws ForbiddenHttpException
      */
     public function actionGetShippingProducts(): Response
     {
+        $this->requirePermission('vend:settings:shipping');
         $this->requirePostRequest();
         $this->requireAcceptsJson();
 
@@ -507,9 +519,11 @@ class SettingsController extends Controller
      * @throws BadRequestHttpException
      * @throws IdentityProviderException
      * @throws MissingComponentException
+     * @throws ForbiddenHttpException
      */
     public function actionSaveShipping(): Response
     {
+        $this->requirePermission('vend:settings:shipping');
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
@@ -557,9 +571,11 @@ class SettingsController extends Controller
      * Loads the Feed Me settings page, which is just informational.
      *
      * @return Response
+     * @throws ForbiddenHttpException
      */
     public function actionFeedMe(): Response
     {
+        $this->requirePermission('vend:settings:feed-me');
         $variables = [
             'importProfiles' => Vend::$plugin->importProfiles->getAll()
         ];

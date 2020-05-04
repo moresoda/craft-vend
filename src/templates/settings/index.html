@@ -1,3 +1,27 @@
-{% if currentUser.admin %}
+{% requirePermission 'vend:settings' %}
+
+{% if currentUser.can('vend:settings:import-profiles') %}
     {% redirect 'vend/settings/import-profiles' %}
 {% endif %}
+
+{% if currentUser.can('vend:settings:webhooks') %}
+    {% redirect 'vend/settings/webhooks' %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:feed-me') %}
+    {% redirect 'vend/settings/feed-me' %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:shipping') %}
+    {% redirect 'vend/settings/shipping' %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:tax') %}
+    {% redirect 'vend/settings/tax' %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:general') %}
+    {% redirect 'vend/settings/general' %}
+{% endif %}
+
+{% exit 403 %}

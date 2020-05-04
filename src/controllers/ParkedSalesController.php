@@ -31,6 +31,18 @@ class ParkedSalesController extends Controller
     // =========================================================================
 
     /**
+     * @inheritdoc
+     *
+     * @throws ForbiddenHttpException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function init()
+    {
+        $this->requirePermission('parked-sales');
+        parent::init();
+    }
+
+    /**
      * Parked sales index page.
      *
      * @return Response
