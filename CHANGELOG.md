@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.4.0 - 2020-05-04
+
+### Added
+- Added user permissions to all the CP nav items.
+
+
 ## 2.3.5 - 2020-05-01
 
 ### Fixed

@@ -70,7 +70,7 @@ class WebhooksController extends Controller
      */
     public function actionIndex(): Response
     {
-        $this->requireAdmin();
+        $this->requirePermission('vend:settings:webhooks');
 
         $variables = [];
         $vendApi = Vend::$plugin->api;
@@ -91,7 +91,7 @@ class WebhooksController extends Controller
      */
     public function actionEdit(): Response
     {
-        $this->requireAdmin();
+        $this->requirePermission('vend:settings:webhooks');
 
         $variables = [];
 
@@ -122,7 +122,7 @@ class WebhooksController extends Controller
      */
     public function actionSave()
     {
-        $this->requireAdmin();
+        $this->requirePermission('vend:settings:webhooks');
         $this->requirePostRequest();
 
         $request = Craft::$app->getRequest();
@@ -179,7 +179,7 @@ class WebhooksController extends Controller
     {
         $this->requirePostRequest();
         $this->requireAcceptsJson();
-        $this->requireAdmin();
+        $this->requirePermission('vend:settings:webhooks');
 
         $webhookId = Craft::$app->getRequest()->getRequiredBodyParam('id');
 

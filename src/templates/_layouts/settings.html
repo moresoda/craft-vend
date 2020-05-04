@@ -5,15 +5,40 @@
 
 {% set navItems = {} %}
 
-{% if currentUser.admin %}
-    {% set navItems = {
-        'import-profiles': { title: "Import Profiles"|t('vend') },
-        'webhooks': { title: "Webhooks"|t('vend') },
-        'feed-me': { title: "Feed Me"|t('vend') },
-        'shipping': { title: "Shipping"|t('vend') },
-        'tax': { title: "Tax"|t('vend') },
-        'general': { title: "General Settings"|t('vend') },
-    } %}
+{% if currentUser.can('vend:settings:import-profiles') %}
+    {% set navItems = navItems|merge({
+        'import-profiles': { title: "Import Profiles"|t('vend') }
+    }) %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:webhooks') %}
+    {% set navItems = navItems|merge({
+        'webhooks': { title: "Webhooks"|t('vend') }
+    }) %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:feed-me') %}
+    {% set navItems = navItems|merge({
+        'feed-me': { title: "Feed Me"|t('vend') }
+    }) %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:shipping') %}
+    {% set navItems = navItems|merge({
+        'shipping': { title: "Shipping"|t('vend') }
+    }) %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:tax') %}
+    {% set navItems = navItems|merge({
+        'tax': { title: "Tax"|t('vend') }
+    }) %}
+{% endif %}
+
+{% if currentUser.can('vend:settings:general') %}
+    {% set navItems = navItems|merge({
+        'general': { title: "General"|t('vend') }
+    }) %}
 {% endif %}
 
 {% if selectedItem is not defined %}

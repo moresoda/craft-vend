@@ -1,1 +1,11 @@
-{% redirect 'vend/sync' %}
+{% if currentUser.can('vend:sync') %}
+    {% redirect 'vend/sync' %}
+{% endif %}
+
+{% if currentUser.can('vend:parked-sales') %}
+    {% redirect 'vend/parked-sales' %}
+{% endif %}
+
+{% if currentUser.can('vend:settings') %}
+    {% redirect 'vend/settings' %}
+{% endif %}
