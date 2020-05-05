@@ -513,9 +513,16 @@ class ProductsController extends Controller
             }
         }
 
-        // Update and save
+        // Update the bundle stock level and store the composite data on the
+        // entry so we can use that when the inventory for a product that is in
+        // the bundle changes.
         try {
             $entry->setFieldValue('vendInventoryCount', $maxStock);
+
+            $json = Json::decode($entry->vendProductJson);
+            $json['composites'] = $compositeProductData['composites'];
+            $entry->setFieldValue('vendProductJson', Json::encode($json));
+
             if (!Craft::$app->getElements()->saveElement($entry)) {
                 Craft::error(
                     'Error updating inventory inline during import for entry ID: '.$entry->id,
