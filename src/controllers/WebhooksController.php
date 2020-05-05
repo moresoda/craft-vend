@@ -230,15 +230,11 @@ class WebhooksController extends Controller
 
         // We need to update the product Entries first, in case for some reason
         // the actual Product feed runs before the Entries one updates
-        $entryQuery = Entry::find();
-        $entryCriteria = [
-            'limit' => 1,
+        $entry = Entry::findOne([
             'vendProductId' => $vendProductId,
             'section' => 'vendProducts',
-        ];
-        Craft::configure($entryQuery, $entryCriteria);
+        ]);
 
-        $entry = $entryQuery->one();
         if (!$entry) {
             Craft::error(
                 'Error finding valid Entry for product ID: '.$vendProductId,
@@ -264,15 +260,12 @@ class WebhooksController extends Controller
         }
 
         // Get the Variant and update that
-        $variantQuery = Variant::find();
-        $variantCriteria = [
+        $variant = Variant::findOne([
             'limit' => 1,
             'status' => null,
             'vendProductId' => $vendProductId
-        ];
-        Craft::configure($variantQuery, $variantCriteria);
+        ]);
 
-        $variant = $variantQuery->one();
         if (!$variant) {
             Craft::error(
                 'Error finding valid Variant for product ID: '.$vendProductId,
@@ -293,6 +286,14 @@ class WebhooksController extends Controller
             return $this->asJson([
                 'success' => false
             ]);
+        }
+
+        // Check the raw product json to see if its a composite
+        $productJson = Json::decode($entry->vendProductJson);
+        $compositeJson = Json::decode($entry->vendProductComposites);
+        if ($productJson['is_composite'] === true && !empty($compositeJson)) {
+            Vend::$plugin->products->updateInventoryForCompositeProductEntry($entry);
+            // TODO: update the variant too in another service method
         }
 
         Craft::info(

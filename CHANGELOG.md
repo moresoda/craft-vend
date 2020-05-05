@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+### Added
+- Added a check for an existing order ID when sending orders to Vend so we don’t accidentally send the same order more than once.
+
+
 ## 2.4.0 - 2020-05-04
 
 ### Added

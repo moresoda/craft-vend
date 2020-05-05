@@ -207,7 +207,7 @@ class ProductsController extends Controller
             $rawProductJson = Json::decode($rawProduct->vendProductJson);
             $isComposite = $rawProductJson['is_composite'] === true;
             if ($isComposite) {
-                $this->_updateCompositeProductInventory($rawProduct);
+                Vend::$plugin->products->updateInventoryForCompositeProductEntry($rawProduct);
             } else if ($fetchInventoryInline) {
                 $this->_updateInventoryInline($rawProduct);
             }
@@ -400,129 +400,6 @@ class ProductsController extends Controller
         // Update and save
         try {
             $entry->setFieldValue('vendInventoryCount', $inventoryAmount);
-            if (!Craft::$app->getElements()->saveElement($entry)) {
-                Craft::error(
-                    'Error updating inventory inline during import for entry ID: '.$entry->id,
-                    __METHOD__
-                );
-                Craft::info($entry->getErrors(), __METHOD__);
-            }
-        } catch (\Throwable $e) {
-            Craft::error(
-                'Exception thrown whilst updating inventory inline during import for entry ID: '.$entry->id,
-                __METHOD__
-            );
-        }
-    }
-
-    /**
-     * Updated inventory for composite products which means going right around
-     * the houses...
-     *
-     * @param Entry $entry
-     *
-     * @throws IdentityProviderException
-     */
-    private function _updateCompositeProductInventory(Entry $entry)
-    {
-        $api = Vend::$plugin->api;
-        /** @var Settings $settings */
-        $settings = Vend::$plugin->getSettings();
-
-        // Get the product ID
-        $productId = $entry->vendProductId;
-        if (!$productId) {
-            return;
-        }
-
-        // Make API call to v1 product endpoint so we can get the composite
-        // product IDs off it
-        $response = $api->getResponse("products/{$productId}");
-
-        // Check we got back the right data
-        if (!$compositeProductData = $response['products'][0]) {
-            return;
-        }
-        if (!$compositeProductData['composites']) {
-            return;
-        }
-
-        // Track max stock available for this bundle
-        $maxStock = 0;
-
-        // Loop the products that make up this composite bundle
-        foreach ($compositeProductData['composites'] as $composite) {
-
-            // Make normal inventory API call
-            $response = $api->getResponse("2.0/products/{$composite['id']}/inventory", ['page_size' => 500]);
-
-            // Check if we got nothing back and bail
-            if (!$response['data']) {
-                return;
-            }
-
-            // Find the one for our outlet
-            $inventoryAmount = null;
-            foreach ($response['data'] as $inventoryItem) {
-                if ($inventoryItem['outlet_id'] === $settings->vend_outletId) {
-                    $inventoryAmount = $inventoryItem['inventory_level'];
-                    break;
-                }
-            }
-
-            // Check we got some inventory
-            if ($inventoryAmount === null) {
-                return;
-            }
-
-            // Update the root Vend Product Entry if we can
-            $query = Entry::find();
-            $criteria = [
-                'section' => 'vendProducts',
-                'vendProductId' => $composite['id']
-            ];
-            Craft::configure($query, $criteria);
-            $compositeEntry = $query->one();
-            if ($compositeEntry) {
-                try {
-                    $compositeEntry->setFieldValue('vendInventoryCount', $inventoryAmount);
-                    if (!Craft::$app->getElements()->saveElement($compositeEntry)) {
-                        Craft::error(
-                            'Error updating inventory inline during import for entry ID: '.$compositeEntry->id,
-                            __METHOD__
-                        );
-                        Craft::info($entry->getErrors(), __METHOD__);
-                    }
-                } catch (\Throwable $e) {
-                    Craft::error(
-                        'Exception thrown whilst updating inventory inline during import for entry ID: '.$compositeEntry->id,
-                        __METHOD__
-                    );
-                }
-            }
-
-            // Work out the max bundles available for this product / composite
-            $maxBundles = bcdiv($inventoryAmount, $composite['count']);
-
-            // Track the lowest max bundle number as the stock level for the
-            // whole bundle
-            if ($maxBundles > 0) {
-                if ($maxStock === 0 || $maxBundles < $maxStock) {
-                    $maxStock = $maxBundles;
-                }
-            }
-        }
-
-        // Update the bundle stock level and store the composite data on the
-        // entry so we can use that when the inventory for a product that is in
-        // the bundle changes.
-        try {
-            $entry->setFieldValue('vendInventoryCount', $maxStock);
-
-            $json = Json::decode($entry->vendProductJson);
-            $json['composites'] = $compositeProductData['composites'];
-            $entry->setFieldValue('vendProductJson', Json::encode($json));
-
             if (!Craft::$app->getElements()->saveElement($entry)) {
                 Craft::error(
                     'Error updating inventory inline during import for entry ID: '.$entry->id,

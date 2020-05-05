@@ -16,6 +16,7 @@ use angellco\vend\queue\jobs\RegisterSale;
 use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
+use angellco\vend\services\Products;
 use angellco\vend\services\ParkedSales;
 use angellco\vend\web\assets\orders\EditOrderAsset;
 use angellco\vend\widgets\FastFeed;
@@ -26,7 +27,9 @@ use craft\base\Field;
 use craft\base\Plugin;
 use craft\base\PreviewableFieldInterface;
 use craft\commerce\elements\Order;
+use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
+use craft\elements\Entry;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -35,6 +38,7 @@ use craft\feedme\models\FeedModel;
 use craft\feedme\Plugin as FeedMe;
 use craft\feedme\queue\jobs\FeedImport;
 use craft\feedme\services\Process;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\log\FileTarget;
@@ -55,6 +59,7 @@ use yii\web\Response;
  * @property VendApi        $api
  * @property ImportProfiles $importProfiles
  * @property Orders         $orders
+ * @property Products       $products
  * @property ParkedSales    $parkedSales
  * @property array          $cpNavItem
  * @property Response|mixed $settingsResponse
@@ -80,7 +85,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '2.2.4';
+    public $schemaVersion = '2.5.0';
 
     // Public Methods
     // =========================================================================
@@ -264,6 +269,40 @@ class Vend extends Plugin
                 }
             );
         }
+
+        // Bind to product save event so we can update stock of composite
+        // products if need be
+        Event::on(
+            Product::class,
+            Product::EVENT_AFTER_SAVE,
+            function(Event $e) {
+                /** @var Product $product */
+                $product = $e->sender;
+
+                // This is inefficient - duped code from webhooks and we could
+                // store a flag on the product itself so we can just check that
+                // rather than making another query
+
+                // FECK: need to store flag on each product that is part of a bundle...
+                // json of bundle products that _use_ this product
+
+                // Then, on save check if its part of a bundle, then run the
+                // inventory for that whole bundle.
+
+                $entry = Entry::findOne([
+                    'vendProductId' => $product->vendProductId,
+                    'section' => 'vendProducts',
+                ]);
+
+                $productJson = Json::decode($entry->vendProductJson);
+                $compositeJson = Json::decode($entry->vendProductComposites);
+                if ($productJson['is_composite'] === true && !empty($compositeJson)) {
+                    Vend::$plugin->products->updateInventoryForCompositeProductEntry($entry);
+                    // TODO: update the variant too in another service method
+                }
+
+            }
+        );
 
         // Customise the Vend Order ID field on order the index
         if ($this->getSettings()->domainPrefix) {

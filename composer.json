@@ -42,6 +42,7 @@
       "api": "angellco\\vend\\services\\Api",
       "importProfiles": "angellco\\vend\\services\\ImportProfiles",
       "orders": "angellco\\vend\\services\\Orders",
+      "products": "angellco\\vend\\services\\Products",
       "parkedSales": "angellco\\vend\\services\\ParkedSales"
     },
     "class": "angellco\\vend\\Vend"
