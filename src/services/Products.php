@@ -14,8 +14,8 @@ use angellco\vend\models\Settings;
 use angellco\vend\Vend;
 use Craft;
 use craft\base\Component;
+use craft\commerce\elements\Variant;
 use craft\elements\Entry;
-use craft\helpers\Json;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 
 /**
@@ -31,24 +31,16 @@ class Products extends Component
     // =========================================================================
 
     /**
-     * Updated inventory for composite products which means going right around
-     * the houses...
+     * Returns the child products that make up a composite / bundle product.
      *
-     * @param Entry $entry
+     * @param $productId
      *
+     * @return bool|mixed
      * @throws IdentityProviderException
      */
-    public function updateInventoryForCompositeProductEntry(Entry $entry)
+    public function getComposites($productId)
     {
         $api = Vend::$plugin->api;
-        /** @var Settings $settings */
-        $settings = Vend::$plugin->getSettings();
-
-        // Get the product ID
-        $productId = $entry->vendProductId;
-        if (!$productId) {
-            return;
-        }
 
         // Make API call to v1 product endpoint so we can get the composite
         // product IDs off it
@@ -56,10 +48,39 @@ class Products extends Component
 
         // Check we got back the right data
         if (!$compositeProductData = $response['products'][0]) {
-            return;
+            return false;
         }
         if (!$compositeProductData['composites']) {
-            return;
+            return false;
+        }
+
+        return $compositeProductData['composites'];
+    }
+
+    /**
+     * Calculates the inventory for a composite product.
+     *
+     * @param $vendProductId
+     *
+     * @return bool|int|string|null
+     * @throws IdentityProviderException
+     */
+    public function calculateInventoryForComposite($vendProductId)
+    {
+        $api = Vend::$plugin->api;
+        /** @var Settings $settings */
+        $settings = Vend::$plugin->getSettings();
+
+        // Make API call to v1 product endpoint so we can get the composite
+        // product IDs off it
+        $response = $api->getResponse("products/{$vendProductId}");
+
+        // Check we got back the right data
+        if (!$compositeProductData = $response['products'][0]) {
+            return false;
+        }
+        if (!$compositeProductData['composites']) {
+            return false;
         }
 
         // Track max stock available for this bundle
@@ -73,7 +94,7 @@ class Products extends Component
 
             // Check if we got nothing back and bail
             if (!$response['data']) {
-                return;
+                return false;
             }
 
             // Find the one for our outlet
@@ -87,33 +108,7 @@ class Products extends Component
 
             // Check we got some inventory
             if ($inventoryAmount === null) {
-                return;
-            }
-
-            // Update the root Vend Product Entry if we can
-            $query = Entry::find();
-            $criteria = [
-                'section' => 'vendProducts',
-                'vendProductId' => $composite['id']
-            ];
-            Craft::configure($query, $criteria);
-            $compositeEntry = $query->one();
-            if ($compositeEntry) {
-                try {
-                    $compositeEntry->setFieldValue('vendInventoryCount', $inventoryAmount);
-                    if (!Craft::$app->getElements()->saveElement($compositeEntry)) {
-                        Craft::error(
-                            'Error updating inventory inline during import for entry ID: '.$compositeEntry->id,
-                            __METHOD__
-                        );
-                        Craft::info($entry->getErrors(), __METHOD__);
-                    }
-                } catch (\Throwable $e) {
-                    Craft::error(
-                        'Exception thrown whilst updating inventory inline during import for entry ID: '.$compositeEntry->id,
-                        __METHOD__
-                    );
-                }
+                return false;
             }
 
             // Work out the max bundles available for this product / composite
@@ -128,26 +123,83 @@ class Products extends Component
             }
         }
 
-        Craft::dd($maxStock);
+        return $maxStock;
+    }
 
-        // Update the bundle stock level and store the composite data on the
-        // entry so we can use that when the inventory for a product that is in
-        // the bundle changes.
+    /**
+     * @param $vendProductId
+     * @param $stock
+     *
+     * @return bool
+     */
+    public function updateInventoryForEntry($vendProductId, $stock): bool
+    {
+        $entry = Entry::findOne([
+            'vendProductId' => $vendProductId,
+            'section' => 'vendProducts',
+            'status' => null,
+        ]);
+
+        if (!$entry) {
+            return false;
+        }
+
         try {
-            $entry->setFieldValue('vendInventoryCount', $maxStock);
-            $entry->setFieldValue('vendProductComposites', Json::encode($compositeProductData['composites']));
+            $entry->setFieldValue('vendInventoryCount', $stock);
             if (!Craft::$app->getElements()->saveElement($entry)) {
                 Craft::error(
-                    'Error updating inventory inline during import for entry ID: '.$entry->id,
-                    __METHOD__
+                'Error updating inventory for entry ID: '.$entry->id,
+                __METHOD__
                 );
                 Craft::info($entry->getErrors(), __METHOD__);
             }
+
+            return true;
         } catch (\Throwable $e) {
             Craft::error(
-                'Exception thrown whilst updating inventory inline during import for entry ID: '.$entry->id,
+                'Exception thrown whilst updating inventory for entry ID: '.$entry->id,
                 __METHOD__
             );
         }
+
+        return false;
+    }
+
+    /**
+     * @param $vendProductId
+     * @param $stock
+     *
+     * @return bool
+     */
+    public function updateInventoryForVariant($vendProductId, $stock): bool
+    {
+        $variant = Variant::findOne([
+            'status' => null,
+            'vendProductId' => $vendProductId
+        ]);
+
+        if (!$variant) {
+            return false;
+        }
+
+        try {
+            $variant->stock = $stock;
+            if (!Craft::$app->getElements()->saveElement($variant)) {
+                Craft::error(
+                    'Error updating inventory for variant ID: '.$variant->id,
+                    __METHOD__
+                );
+                Craft::info($variant->getErrors(), __METHOD__);
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Craft::error(
+                'Exception thrown whilst updating inventory for variant ID: '.$variant->id,
+                __METHOD__
+            );
+        }
+
+        return false;
     }
 }

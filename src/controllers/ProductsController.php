@@ -21,6 +21,7 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\twig\variables\Paginate;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use yii\base\ExitException;
 use yii\web\Response;
 
 /**
@@ -93,6 +94,12 @@ class ProductsController extends Controller
 
         foreach ($response['data'] as $product) {
             if ($product['id'] && !in_array($product['id'], $excludedProductIds, true)) {
+
+                $composites = null;
+                if ($product['is_composite'] === true) {
+                    $composites = Vend::$plugin->products->getComposites($product['id']);
+                }
+
                 $products[] = [
                     'id' => $product['id'],
                     'name' => $product['name'],
@@ -106,6 +113,7 @@ class ProductsController extends Controller
                     'isVariant' => (bool)$product['variant_parent_id'],
                     'variantParentId' => $product['variant_parent_id'],
                     'variantName' => $product['variant_name'],
+                    'compositeChildProducts' => $composites ? Json::encode($composites) : null,
                     'productJson' => Json::encode($product)
                 ];
             }
@@ -147,7 +155,7 @@ class ProductsController extends Controller
      * Vend API.
      *
      * @return Response
-     * @throws IdentityProviderException
+     * @throws IdentityProviderException|ExitException
      */
     public function actionImport(): Response
     {
@@ -201,14 +209,8 @@ class ProductsController extends Controller
 
             $variants = [];
 
-            // Check if we need to update the inventory inline or not - we have
-            // to do this inline for composite products because they don’t appear
-            // in the normal inventory API and then normally for other products.
-            $rawProductJson = Json::decode($rawProduct->vendProductJson);
-            $isComposite = $rawProductJson['is_composite'] === true;
-            if ($isComposite) {
-                Vend::$plugin->products->updateInventoryForCompositeProductEntry($rawProduct);
-            } else if ($fetchInventoryInline) {
+            // Check if we need to update inventory inline
+            if ($fetchInventoryInline) {
                 $this->_updateInventoryInline($rawProduct);
             }
 
@@ -313,6 +315,91 @@ class ProductsController extends Controller
         return $this->asJson($return);
     }
 
+    /**
+     * Updates the parent product IDs field on product Entries that are children
+     * of composites.
+     *
+     * @return Response
+     */
+    public function actionComposites(): Response
+    {
+        $request = Craft::$app->getRequest();
+
+        // Set up the basic query
+        $query = Entry::find();
+        $criteria = [
+            'limit' => null,
+            'section' => 'vendProducts',
+            // Exclude variants
+            'vendProductIsVariant' => false,
+            // Only fetch products that are composites
+            'vendCompositeChildProducts' => ':notempty:'
+        ];
+        Craft::configure($query, $criteria);
+
+        // Set up the paginator
+        $paginator = new Paginator($query, [
+            'pageSize' => 100,
+            'currentPage' => $request->pageNum
+        ]);
+
+        $twigPaginate = Paginate::create($paginator);
+
+        // Loop over the results and create an array of just the things we want
+        $products = [];
+
+        /** @var Entry $rawProduct */
+        foreach ($paginator->getPageResults() as $rawProduct) {
+
+            // For each composite child product, get the child entry and add the
+            // parent product ID to it - keeping existing ones
+            $compositeChildProducts = Json::decode($rawProduct->vendCompositeChildProducts);
+            foreach ($compositeChildProducts as $compositeChildProduct) {
+                // Get child product Entry
+                $childEntry = Entry::findOne([
+                    'vendProductId' => $compositeChildProduct['id']
+                ]);
+
+                // If there is already a child product that has some parents in
+                // this stack then use that stack as our starting point
+                if (isset($products[$compositeChildProduct['id']])) {
+                    $compositeParentProductIds = Json::decode($products[$compositeChildProduct['id']]['compositeParentProductIds']);
+                } else {
+                    $compositeParentProductIds = [];
+                }
+
+                // Merge in any from the current child entry
+                if ($childEntry) {
+                    $currentParentIds = Json::decode($childEntry->vendCompositeParentProductIds);
+                    if (!empty($currentParentIds)) {
+                        $compositeParentProductIds = array_merge($compositeParentProductIds, $currentParentIds);
+                    }
+                }
+
+                // Finally, add in our current parent entry
+                $compositeParentProductIds[] = $rawProduct->vendProductId;
+
+                // Remove emtpies and dupes
+                $compositeParentProductIds = array_unique(array_filter($compositeParentProductIds));
+
+                // Add this child product to the stack with its parent IDs on it
+                $products[$compositeChildProduct['id']] = [
+                    'id' => $compositeChildProduct['id'],
+                    'compositeParentProductIds' => Json::encode($compositeParentProductIds)
+                ];
+            }
+
+        }
+
+        // Make the object we want Feed Me to consume
+        $return = [
+            'products' => array_values($products),
+            'nextUrl' => $twigPaginate->getNextUrl()
+        ];
+
+        return $this->asJson($return);
+    }
+
     // Private Methods
     // =========================================================================
 
@@ -352,6 +439,7 @@ class ProductsController extends Controller
             'formattedOptionNames' => $formattedOptionNames,
             'formattedOptionValues' => $formattedOptionValues,
             'options' => $options,
+            'compositeParentProductIds' => $rawProduct->vendCompositeParentProductIds,
             'productJson' => $productJson
         ];
     }

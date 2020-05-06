@@ -349,8 +349,23 @@ class Install extends Migration
             $compositesField = $fieldsService->createField([
                 'type' => PlainText::class,
                 'groupId' => $group->id,
-                'name' => 'Vend Product Composites',
-                'handle' => 'vendProductComposites',
+                'name' => 'Vend Composite Child Products',
+                'handle' => 'vendCompositeChildProducts',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [
+                    'code' => true,
+                    'multiline' => true,
+                ],
+            ]);
+
+            $parentCompositeIdsField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Composite Parent Product IDs',
+                'handle' => 'vendCompositeParentProductIds',
                 'instructions' => '',
                 'searchable' => true,
                 'translationMethod' => Field::TRANSLATION_METHOD_NONE,
@@ -427,6 +442,7 @@ class Install extends Migration
                 && $fieldsService->saveField($variantInventoryField)
                 && $fieldsService->saveField($jsonField)
                 && $fieldsService->saveField($compositesField)
+                && $fieldsService->saveField($parentCompositeIdsField)
                 && $fieldsService->saveField($customerIdField)
                 && $fieldsService->saveField($orderIdField)
                 && $fieldsService->saveField($dateUpdatedField)

@@ -13,7 +13,7 @@ use craft\fields\PlainText;
 /**
  * m200505_185913_AddProductCompositesField migration.
  */
-class m200505_185913_AddProductCompositesField extends Migration
+class m200505_185913_AddProductCompositesFields extends Migration
 {
     /**
      * @inheritdoc
@@ -25,7 +25,7 @@ class m200505_185913_AddProductCompositesField extends Migration
     {
         $fieldsService = Craft::$app->getFields();
 
-        if (!$fieldsService->getFieldByHandle('vendProductComposites')) {
+        if (!$fieldsService->getFieldByHandle('vendCompositeChildProducts')) {
             $fieldGroupId = (new Query())
                 ->select([
                     'id',
@@ -38,8 +38,36 @@ class m200505_185913_AddProductCompositesField extends Migration
             $field = $fieldsService->createField([
                 'type' => PlainText::class,
                 'groupId' => $fieldGroupId,
-                'name' => 'Vend Product Composites',
-                'handle' => 'vendProductComposites',
+                'name' => 'Vend Composite Child Products',
+                'handle' => 'vendCompositeChildProducts',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [
+                    'code' => true,
+                    'multiline' => true,
+                ],
+            ]);
+
+            $fieldsService->saveField($field);
+        }
+
+        if (!$fieldsService->getFieldByHandle('vendCompositeParentProductIds')) {
+            $fieldGroupId = (new Query())
+                ->select([
+                    'id',
+                    'name',
+                ])
+                ->where(['name' => 'Vend'])
+                ->from([Table::FIELDGROUPS])
+                ->scalar();
+
+            $field = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $fieldGroupId,
+                'name' => 'Vend Composite Parent Product IDs',
+                'handle' => 'vendCompositeParentProductIds',
                 'instructions' => '',
                 'searchable' => true,
                 'translationMethod' => Field::TRANSLATION_METHOD_NONE,

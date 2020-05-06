@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+> {note} This release will require you to add both new composite fields to the entries layout, the composite parent IDs field to your variants and re-map both the core entries and product feeds to take these into account
+> {note} You will also need to add the new composites feed 
+
 ### Added
+- Added full support for composite products - now they update stock on sync, webhook and Craft product saves.
 - Added a check for an existing order ID when sending orders to Vend so we don’t accidentally send the same order more than once.
 
 
