@@ -12,18 +12,13 @@ namespace angellco\vend\controllers;
 
 use angellco\vend\Vend;
 use Craft;
-use craft\commerce\elements\Variant;
-use craft\elements\Entry;
-use craft\errors\ElementNotFoundException;
 use craft\errors\MissingComponentException;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\ServiceUnavailableHttpException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
-use Throwable;
 use yii\base\Action;
-use yii\base\Exception;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
 use yii\web\Response;
@@ -201,9 +196,6 @@ class WebhooksController extends Controller
      *
      * @return Response
      * @throws BadRequestHttpException
-     * @throws Throwable
-     * @throws ElementNotFoundException
-     * @throws Exception
      */
     public function actionInventory(): Response
     {
@@ -211,6 +203,7 @@ class WebhooksController extends Controller
         $settings = Vend::$plugin->getSettings();
 
         $request = Craft::$app->getRequest();
+        $vendProducts = Vend::$plugin->products;
 
         $type = $request->getRequiredParam('type');
         $payload = $request->getRequiredParam('payload');
@@ -228,77 +221,19 @@ class WebhooksController extends Controller
         $vendProductId = $payload['product_id'];
         $inventoryAmount = $payload['count'];
 
-        // We need to update the product Entries first, in case for some reason
-        // the actual Product feed runs before the Entries one updates
-        $entryQuery = Entry::find();
-        $entryCriteria = [
-            'limit' => 1,
-            'vendProductId' => $vendProductId,
-            'section' => 'vendProducts',
-        ];
-        Craft::configure($entryQuery, $entryCriteria);
-
-        $entry = $entryQuery->one();
-        if (!$entry) {
-            Craft::error(
-                'Error finding valid Entry for product ID: '.$vendProductId,
-                __METHOD__
-            );
+        // Update the Entry record
+        if (!$vendProducts->updateInventoryForEntry($vendProductId, $inventoryAmount)) {
             return $this->asJson([
                 'success' => false
             ]);
         }
 
-        $elements = Craft::$app->getElements();
-
-        $entry->setFieldValue('vendInventoryCount', $inventoryAmount);
-        if (!$elements->saveElement($entry)) {
-            Craft::error(
-                'Error updating Entry for product ID: '.$vendProductId,
-                __METHOD__
-            );
-            Craft::info($entry->getErrors(), __METHOD__);
+        // Update the Variant
+        if (!$vendProducts->updateInventoryForVariant($vendProductId, $inventoryAmount)) {
             return $this->asJson([
                 'success' => false
             ]);
         }
-
-        // Get the Variant and update that
-        $variantQuery = Variant::find();
-        $variantCriteria = [
-            'limit' => 1,
-            'status' => null,
-            'vendProductId' => $vendProductId
-        ];
-        Craft::configure($variantQuery, $variantCriteria);
-
-        $variant = $variantQuery->one();
-        if (!$variant) {
-            Craft::error(
-                'Error finding valid Variant for product ID: '.$vendProductId,
-                __METHOD__
-            );
-            return $this->asJson([
-                'success' => false
-            ]);
-        }
-
-        $variant->stock = $inventoryAmount;
-        if (!$elements->saveElement($variant)) {
-            Craft::error(
-                'Error updating Variant for product ID: '.$vendProductId,
-                __METHOD__
-            );
-            Craft::info($variant->getErrors(), __METHOD__);
-            return $this->asJson([
-                'success' => false
-            ]);
-        }
-
-        Craft::info(
-            'Inventory webhook successfully executed.',
-            __METHOD__
-        );
 
         return $this->asJson([
             'success' => true

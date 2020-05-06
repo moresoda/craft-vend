@@ -346,6 +346,36 @@ class Install extends Migration
                 ],
             ]);
 
+            $compositesField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Composite Child Products',
+                'handle' => 'vendCompositeChildProducts',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [
+                    'code' => true,
+                    'multiline' => true,
+                ],
+            ]);
+
+            $parentCompositeIdsField = $fieldsService->createField([
+                'type' => PlainText::class,
+                'groupId' => $group->id,
+                'name' => 'Vend Composite Parent Product IDs',
+                'handle' => 'vendCompositeParentProductIds',
+                'instructions' => '',
+                'searchable' => true,
+                'translationMethod' => Field::TRANSLATION_METHOD_NONE,
+                'translationKeyFormat' => '',
+                'settings' => [
+                    'code' => true,
+                    'multiline' => true,
+                ],
+            ]);
+
             $customerIdField = $fieldsService->createField([
                 'type' => PlainText::class,
                 'groupId' => $group->id,
@@ -411,6 +441,8 @@ class Install extends Migration
                 && $fieldsService->saveField($variantNameField)
                 && $fieldsService->saveField($variantInventoryField)
                 && $fieldsService->saveField($jsonField)
+                && $fieldsService->saveField($compositesField)
+                && $fieldsService->saveField($parentCompositeIdsField)
                 && $fieldsService->saveField($customerIdField)
                 && $fieldsService->saveField($orderIdField)
                 && $fieldsService->saveField($dateUpdatedField)
@@ -530,6 +562,14 @@ class Install extends Migration
                     'fieldId' => $jsonField->id,
                     'required' => true,
                     'sortOrder' => 12
+                ]);
+
+                $this->insert(FieldLayoutField::tableName(), [
+                    'layoutId' => $fieldLayoutId,
+                    'tabId' => $tabId,
+                    'fieldId' => $compositesField->id,
+                    'required' => true,
+                    'sortOrder' => 13
                 ]);
 
                 $fieldLayout = $fieldsService->getLayoutById($fieldLayoutId);

@@ -39,6 +39,16 @@
                 <td>This feed is for specifically importing the inventory of all Vend products into the dedicated Vend Products section.</td>
             </tr>
             <tr>
+                <td>Vend composites</td>
+                <td>
+                    {{ forms.textField({
+                        class: 'code',
+                        value: actionUrl('vend/products/composites'),
+                    }) }}
+                </td>
+                <td>This feed is for specifically importing the composite product data into the dedicated Vend Products section.</td>
+            </tr>
+            <tr>
                 <td>Commerce products</td>
                 <td>
                     {{ forms.textField({

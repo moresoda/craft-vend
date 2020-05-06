@@ -16,12 +16,14 @@ use angellco\vend\queue\jobs\RegisterSale;
 use angellco\vend\services\Api as VendApi;
 use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
+use angellco\vend\services\Products;
 use angellco\vend\services\ParkedSales;
 use angellco\vend\web\assets\orders\EditOrderAsset;
 use angellco\vend\widgets\FastFeed;
 use angellco\vend\widgets\FullFeed;
 use Craft;
 use craft\base\EagerLoadingFieldInterface;
+use craft\base\Element;
 use craft\base\Field;
 use craft\base\Plugin;
 use craft\base\PreviewableFieldInterface;
@@ -35,10 +37,12 @@ use craft\feedme\models\FeedModel;
 use craft\feedme\Plugin as FeedMe;
 use craft\feedme\queue\jobs\FeedImport;
 use craft\feedme\services\Process;
+use craft\helpers\Json;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\log\FileTarget;
 use craft\services\Dashboard;
+use craft\services\Elements;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 use venveo\oauthclient\events\TokenEvent;
@@ -55,6 +59,7 @@ use yii\web\Response;
  * @property VendApi        $api
  * @property ImportProfiles $importProfiles
  * @property Orders         $orders
+ * @property Products       $products
  * @property ParkedSales    $parkedSales
  * @property array          $cpNavItem
  * @property Response|mixed $settingsResponse
@@ -80,7 +85,7 @@ class Vend extends Plugin
      *
      * @var string
      */
-    public $schemaVersion = '2.2.4';
+    public $schemaVersion = '2.5.0';
 
     // Public Methods
     // =========================================================================
@@ -265,6 +270,33 @@ class Vend extends Plugin
             );
         }
 
+        // Bind to element after save event so we can update stock of composite
+        // products if need be
+        Event::on(
+            Elements::class,
+            Elements::EVENT_AFTER_SAVE_ELEMENT,
+            function(Event $e) {
+                /** @var Element $element */
+                $element = $e->element;
+
+                if (is_a($element, Variant::class)) {
+                    $compositeParentProductIds = Json::decode($element->vendCompositeParentProductIds);
+                    if (is_array($compositeParentProductIds)) {
+                        foreach ($compositeParentProductIds as $compositeParentProductId) {
+                            // Get the stock
+                            $stock = $this->products->calculateInventoryForComposite($compositeParentProductId);
+
+                            // Update the parent Entry
+                            $this->products->updateInventoryForEntry($compositeParentProductId, $stock);
+
+                            // Update the parent Variant
+                            $this->products->updateInventoryForVariant($compositeParentProductId, $stock);
+                        }
+                    }
+                }
+            }
+        );
+
         // Customise the Vend Order ID field on order the index
         if ($this->getSettings()->domainPrefix) {
             /** @var Field $vendOrderIdField */
@@ -405,9 +437,7 @@ class Vend extends Plugin
 
                     // Trigger inventory
                     foreach ($feeds->getFeeds() as $feed) {
-
                         if (StringHelper::contains($feed->feedUrl, 'vend/products/inventory')) {
-
                             $processedElementIds = [];
 
                             $queue->delay(0)->push(new FeedImport([
@@ -425,6 +455,29 @@ class Vend extends Plugin
 
                 // Main inventory feed
                 } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/inventory')) {
+
+                    // Trigger composites
+                    $runQueue = false;
+                    foreach ($feeds->getFeeds() as $feed) {
+                        if (StringHelper::contains($feed->feedUrl, 'vend/products/composites')) {
+                            $processedElementIds = [];
+
+                            $queue->delay(0)->push(new FeedImport([
+                                'feed' => $feed,
+                                'limit' => null,
+                                'offset' => null,
+                                'processedElementIds' => $processedElementIds,
+                            ]));
+
+                            $runQueue = true;
+                        }
+                    }
+
+                    if ($runQueue) {
+                        $queue->run();
+                    }
+
+                } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/composites')) {
 
                     // Trigger all of the full product import feeds
                     $runQueue = false;

@@ -58,6 +58,11 @@ class Orders extends Component
             return false;
         }
 
+        // If we already have an order ID, then also bail
+        if (!empty($order->vendOrderId)) {
+            return true;
+        }
+
         // Cache the line items
         /** @var LineItem[] $lineItems */
         $lineItems = $order->getLineItems();
