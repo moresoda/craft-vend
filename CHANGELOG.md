@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.5.0 - 2020-05-06
+
 > {note} This release will require you to add both new composite fields to the entries layout, the composite parent IDs field to your variants and re-map both the core entries and product feeds to take these into account
 > {note} You will also need to add the new composites feed 
 
