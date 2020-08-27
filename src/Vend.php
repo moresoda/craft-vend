@@ -232,7 +232,7 @@ class Vend extends Plugin
         Event::on(
             Providers::class,
             Providers::EVENT_REGISTER_PROVIDER_TYPES,
-            static function (RegisterComponentTypesEvent $event) {
+            static function(RegisterComponentTypesEvent $event) {
                 $event->types[] = VendProvider::class;
             }
         );
@@ -363,9 +363,9 @@ class Vend extends Plugin
 
         // Project config listeners
         Craft::$app->projectConfig
-            ->onAdd($this->importProfiles::CONFIG_PROFILES_KEY.'.{uid}', [$this->importProfiles, 'handleChangedProfile'])
-            ->onUpdate($this->importProfiles::CONFIG_PROFILES_KEY.'.{uid}', [$this->importProfiles, 'handleChangedProfile'])
-            ->onRemove($this->importProfiles::CONFIG_PROFILES_KEY.'.{uid}', [$this->importProfiles, 'handleDeletedProfile']);
+            ->onAdd($this->importProfiles::CONFIG_PROFILES_KEY . '.{uid}', [$this->importProfiles, 'handleChangedProfile'])
+            ->onUpdate($this->importProfiles::CONFIG_PROFILES_KEY . '.{uid}', [$this->importProfiles, 'handleChangedProfile'])
+            ->onRemove($this->importProfiles::CONFIG_PROFILES_KEY . '.{uid}', [$this->importProfiles, 'handleDeletedProfile']);
 
         // Project config rebuild listener
 //        Event::on(ProjectConfig::class, ProjectConfig::EVENT_REBUILD, function(RebuildConfigEvent $e) {
@@ -383,126 +383,123 @@ class Vend extends Plugin
         );
 
         // Feed Me listeners
-        Event::on(
-            Process::class,
-            Process::EVENT_AFTER_PROCESS_FEED,
-            static function(FeedProcessEvent $event) {
-                /** @var FeedModel $feed */
-                $currentFeed = $event->feed;
-                $feeds = FeedMe::$plugin->getFeeds();
-                $queue = Craft::$app->getQueue();
+        if ($this->getSettings()->cascadeFeedMe) {
+            Event::on(
+                Process::class,
+                Process::EVENT_AFTER_PROCESS_FEED,
+                static function(FeedProcessEvent $event) {
+                    /** @var FeedModel $feed */
+                    $currentFeed = $event->feed;
+                    $feeds = FeedMe::$plugin->getFeeds();
+                    $queue = Craft::$app->getQueue();
 
-                // Fast sync - main product db import
-                if (StringHelper::containsAll($currentFeed->feedUrl, ['vend/products/list', 'fastSyncLimit', 'fastSyncOrder'])) {
+                    // Fast sync - main product db import
+                    if (StringHelper::containsAll($currentFeed->feedUrl, ['vend/products/list', 'fastSyncLimit', 'fastSyncOrder'])) {
 
-                    // Get the fastSyncLimit and fastSyncOrder params out of the feed URL
-                    $parts = parse_url($currentFeed->feedUrl);
-                    parse_str($parts['query'], $query);
-                    $fastSyncLimit = $query['fastSyncLimit'];
-                    $fastSyncOrder = $query['fastSyncOrder'];
+                        // Get the fastSyncLimit and fastSyncOrder params out of the feed URL
+                        $parts = parse_url($currentFeed->feedUrl);
+                        parse_str($parts['query'], $query);
+                        $fastSyncLimit = $query['fastSyncLimit'];
+                        $fastSyncOrder = $query['fastSyncOrder'];
 
-                    // Trigger all the product import feeds but modify their URLs to be fast versions
-                    $runQueue = false;
-                    foreach ($feeds->getFeeds() as $feed) {
+                        // Trigger all the product import feeds but modify their URLs to be fast versions
+                        $runQueue = false;
+                        foreach ($feeds->getFeeds() as $feed) {
 
-                        if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
+                            if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
 
-                            // Modify the feed URL to include the limit, order and inline inventory trigger
-                            $feed->feedUrl = UrlHelper::urlWithParams($feed->feedUrl, [
-                                'limit' => $fastSyncLimit,
-                                'inventory' => 1,
-                                'order' => $fastSyncOrder
-                            ]);
+                                // Modify the feed URL to include the limit, order and inline inventory trigger
+                                $feed->feedUrl = UrlHelper::urlWithParams($feed->feedUrl, [
+                                    'limit' => $fastSyncLimit,
+                                    'inventory' => 1,
+                                    'order' => $fastSyncOrder
+                                ]);
 
-                            $processedElementIds = [];
+                                $processedElementIds = [];
 
-                            $queue->delay(0)->push(new FeedImport([
-                                'feed' => $feed,
-                                'limit' => null,
-                                'offset' => null,
-                                'processedElementIds' => $processedElementIds,
-                            ]));
+                                $queue->delay(0)->push(new FeedImport([
+                                    'feed' => $feed,
+                                    'limit' => null,
+                                    'offset' => null,
+                                    'processedElementIds' => $processedElementIds,
+                                ]));
 
-                            $runQueue = true;
+                                $runQueue = true;
+                            }
                         }
 
-                    }
-
-                    if ($runQueue) {
-                        $queue->run();
-                    }
-
-                // Full sync - main product db import
-                } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/list')) {
-
-                    // Trigger inventory
-                    foreach ($feeds->getFeeds() as $feed) {
-                        if (StringHelper::contains($feed->feedUrl, 'vend/products/inventory')) {
-                            $processedElementIds = [];
-
-                            $queue->delay(0)->push(new FeedImport([
-                                'feed' => $feed,
-                                'limit' => null,
-                                'offset' => null,
-                                'processedElementIds' => $processedElementIds,
-                            ]));
-
+                        if ($runQueue) {
                             $queue->run();
-
-                            break;
                         }
-                    }
+                        // Full sync - main product db import
+                    } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/list')) {
 
-                // Main inventory feed
-                } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/inventory')) {
+                        // Trigger inventory
+                        foreach ($feeds->getFeeds() as $feed) {
+                            if (StringHelper::contains($feed->feedUrl, 'vend/products/inventory')) {
+                                $processedElementIds = [];
 
-                    // Trigger composites
-                    $runQueue = false;
-                    foreach ($feeds->getFeeds() as $feed) {
-                        if (StringHelper::contains($feed->feedUrl, 'vend/products/composites')) {
-                            $processedElementIds = [];
+                                $queue->delay(0)->push(new FeedImport([
+                                    'feed' => $feed,
+                                    'limit' => null,
+                                    'offset' => null,
+                                    'processedElementIds' => $processedElementIds,
+                                ]));
 
-                            $queue->delay(0)->push(new FeedImport([
-                                'feed' => $feed,
-                                'limit' => null,
-                                'offset' => null,
-                                'processedElementIds' => $processedElementIds,
-                            ]));
+                                $queue->run();
 
-                            $runQueue = true;
+                                break;
+                            }
                         }
-                    }
+                        // Main inventory feed
+                    } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/inventory')) {
 
-                    if ($runQueue) {
-                        $queue->run();
-                    }
+                        // Trigger composites
+                        $runQueue = false;
+                        foreach ($feeds->getFeeds() as $feed) {
+                            if (StringHelper::contains($feed->feedUrl, 'vend/products/composites')) {
+                                $processedElementIds = [];
 
-                } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/composites')) {
+                                $queue->delay(0)->push(new FeedImport([
+                                    'feed' => $feed,
+                                    'limit' => null,
+                                    'offset' => null,
+                                    'processedElementIds' => $processedElementIds,
+                                ]));
 
-                    // Trigger all of the full product import feeds
-                    $runQueue = false;
-                    foreach ($feeds->getFeeds() as $feed) {
-                        if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
-                            $processedElementIds = [];
-
-                            $queue->delay(0)->push(new FeedImport([
-                                'feed' => $feed,
-                                'limit' => null,
-                                'offset' => null,
-                                'processedElementIds' => $processedElementIds,
-                            ]));
-
-                            $runQueue = true;
+                                $runQueue = true;
+                            }
                         }
-                    }
 
-                    if ($runQueue) {
-                        $queue->run();
+                        if ($runQueue) {
+                            $queue->run();
+                        }
+                    } elseif (StringHelper::contains($currentFeed->feedUrl, 'vend/products/composites')) {
+
+                        // Trigger all of the full product import feeds
+                        $runQueue = false;
+                        foreach ($feeds->getFeeds() as $feed) {
+                            if (StringHelper::contains($feed->feedUrl, 'vend/products/import')) {
+                                $processedElementIds = [];
+
+                                $queue->delay(0)->push(new FeedImport([
+                                    'feed' => $feed,
+                                    'limit' => null,
+                                    'offset' => null,
+                                    'processedElementIds' => $processedElementIds,
+                                ]));
+
+                                $runQueue = true;
+                            }
+                        }
+
+                        if ($runQueue) {
+                            $queue->run();
+                        }
                     }
                 }
-
-            }
-        );
+            );
+        }
     }
 
     /**

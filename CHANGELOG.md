@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.3 - 2020-08-27
+
+### Added
+- Added a config option to cascade feed me: `'cascadeFeedMe' => false`
+
+
 ## 2.5.2 - 2020-08-27
 
 ### Fixed

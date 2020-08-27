@@ -92,4 +92,11 @@ class Settings extends Model
      * @var string
      */
     public $commerce_parkedSaleEmailId;
+
+    // Misc
+    // =========================================================================
+    /**
+     * @var bool
+     */
+    public $cascadeFeedMe = true;
 }
