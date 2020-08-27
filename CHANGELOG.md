@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.1 - 2020-08-27
+
+### Fixed
+- Fixed a bug with checking composite product data.
+
 
 ## 2.5.0 - 2020-05-06
 

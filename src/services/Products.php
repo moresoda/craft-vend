@@ -50,6 +50,9 @@ class Products extends Component
         if (!$compositeProductData = $response['products'][0]) {
             return false;
         }
+        if (!isset($compositeProductData['composites'])) {
+            return false;
+        }
         if (!$compositeProductData['composites']) {
             return false;
         }
@@ -77,6 +80,9 @@ class Products extends Component
 
         // Check we got back the right data
         if (!$compositeProductData = $response['products'][0]) {
+            return false;
+        }
+        if (!isset($compositeProductData['composites'])) {
             return false;
         }
         if (!$compositeProductData['composites']) {
