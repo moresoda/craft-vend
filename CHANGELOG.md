@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.2 - 2020-08-27
+
+### Fixed
+- Fixed an issue with sending orders that have a partial refund on them.
+
+
 ## 2.5.1 - 2020-08-27
 
 ### Fixed

@@ -208,7 +208,7 @@ class Orders extends Component
             'register_sale_payments' => [
                 [
                     'retailer_payment_type_id' => $settings->vend_retailerPaymentTypeId,
-                    'payment_date' => $order->datePaid->format('Y-m-d H:i:s'),
+                    'payment_date' => $order->dateOrdered->format('Y-m-d H:i:s'),
                     'amount' => $order->getTotalPaid()
                 ]
             ]
