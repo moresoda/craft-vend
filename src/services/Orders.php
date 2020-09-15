@@ -230,21 +230,39 @@ class Orders extends Component
             // Find the amount of tax for one item
             $taxAmount = bcdiv($lineItem->getTaxIncluded(), $lineItem->qty, 5);
 
+            // Get the item price without tax
+            $itemPriceWithoutTax = bcsub($lineItem->salePrice, $taxAmount, 5);
+
+            // Re-calculate price if line item discount is present - tax has already been taken into account but salePrice
+            // still shows the pre-discounted price per item so we have to fiddle
+            $perItemDiscount = null;
+            if ($lineItem->getDiscount()) {
+                // Get the per item discount amount - this will be negative, because getDiscount() returns a negative number
+                $perItemDiscount = bcdiv($lineItem->getDiscount(), $lineItem->qty, 5);
+
+                // We can get the discounted item price (with tax) by adding the discount to the sale price
+                $itemPriceWithTax = bcadd($lineItem->salePrice, $perItemDiscount, 5);
+
+                // Now we can calculate the discounted item price without tax again, which is what Vend wants
+                $itemPriceWithoutTax = bcsub($itemPriceWithTax, $taxAmount, 5);
+            }
+
             // Prep the main product data array
             $productData = [
                 'product_id' => $variant->vendProductId,
                 'quantity' => $lineItem->qty,
                 // Unit price, tax exclusive
-                'price' => bcsub($lineItem->salePrice, $taxAmount, 5),
-                // The amount of tax in the unit price
-                'tax' => $taxAmount, // TODO: check this includes the discount, if not we need to factor it in
+                'price' => $itemPriceWithoutTax,
+                // The amount of tax in the unit price - this will be already discounted if need be
+                'tax' => $taxAmount,
                 // The applicable Sales Tax ID
                 'tax_id' => $salesTaxId
             ];
 
             // Add the discount for this line item if there is one
-            if ($lineItem->getDiscount()) {
-                $productData['discount'] = $lineItem->getDiscount();
+            if ($perItemDiscount) {
+                // Send the discount as a positive number per item
+                $productData['discount'] = abs($perItemDiscount);
                 $productData['price_set'] = 1;
             }
 

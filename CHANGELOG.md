@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.4 - 2020-09-15
+
+### Fixed
+- Fixed line item level discounts which were being sent to Vend as a negative amount as well as with the wrong price value
+
+
 ## 2.5.3 - 2020-08-27
 
 ### Added
