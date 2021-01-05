@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.5 - 2021-01-05
+
+### Fixed
+- Fixed an issue introduced in 2.5.4 where order level discounts would also include line item level discounts, now they don’t
+
+
 ## 2.5.4 - 2020-09-15
 
 ### Fixed

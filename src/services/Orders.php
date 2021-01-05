@@ -215,6 +215,7 @@ class Orders extends Component
         ];
 
         // Process the line items
+        $totalLineItemsDiscount = 0;
         foreach ($lineItems as $lineItem) {
 
             /** @var Variant $variant */
@@ -239,6 +240,9 @@ class Orders extends Component
             if ($lineItem->getDiscount()) {
                 // Get the per item discount amount - this will be negative, because getDiscount() returns a negative number
                 $perItemDiscount = bcdiv($lineItem->getDiscount(), $lineItem->qty, 5);
+
+                // Add it to our tracker, because its negative we just minus it here so we end up with a positive number
+                $totalLineItemsDiscount -= $lineItem->getDiscount();
 
                 // We can get the discounted item price (with tax) by adding the discount to the sale price
                 $itemPriceWithTax = bcadd($lineItem->salePrice, $perItemDiscount, 5);
@@ -309,13 +313,14 @@ class Orders extends Component
             }
         }
 
-        // Process order level discount adjustments
+        // Process order level discount adjustments - this does not include line item discounts
         $totalDiscount = abs($order->getTotalDiscount());
-        if ($totalDiscount > 0) {
+        $orderDiscount = $totalDiscount - $totalLineItemsDiscount;
+        if ($orderDiscount > 0) {
             $data['register_sale_products'][] = [
                 'product_id' => $settings->vend_discountProductId,
                 'quantity' => -1,
-                'price' => $totalDiscount,
+                'price' => $orderDiscount,
                 'price_set' => 1,
                 'tax' => 0,
                 'tax_id' => $settings->vend_noTaxId
