@@ -70,6 +70,16 @@ class Settings extends Model
     /**
      * @var string
      */
+    public $vend_discountTaxId;
+
+    /**
+     * @var string
+     */
+    public $vend_discountTaxRate;
+
+    /**
+     * @var string
+     */
     public $vend_noTaxId;
 
     // Vend / Commerce relations
