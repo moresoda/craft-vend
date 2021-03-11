@@ -257,6 +257,18 @@ class SettingsController extends Controller
         $settings->vend_discountProductId = $request->getBodyParam('vend_discountProductId') ?? $settings->vend_discountProductId;
         $settings->vend_noTaxId = $request->getBodyParam('vend_noTaxId') ?? $settings->vend_noTaxId;
 
+        // If we have a discount product (which we should) then we need to fetch the tax info
+        if ($settings->vend_discountProductId) {
+
+            // Get the discount product from the API again
+            $discountProductResponse = Vend::$plugin->api->getResponse('products/'.$settings->vend_discountProductId);
+            if ($discountProductResponse && isset($discountProductResponse['products'])) {
+                $discountProduct = $discountProductResponse['products'][0];
+                $settings->vend_discountTaxId = $discountProduct['tax_id'];
+                $settings->vend_discountTaxRate = $discountProduct['tax_rate'];
+            }
+        }
+
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(Craft::t('vend', 'Couldn’t save settings.'));
             return $this->renderTemplate('vend/settings/general', compact('settings'));

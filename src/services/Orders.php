@@ -317,13 +317,18 @@ class Orders extends Component
         $totalDiscount = abs($order->getTotalDiscount());
         $orderDiscount = $totalDiscount - $totalLineItemsDiscount;
         if ($orderDiscount > 0) {
+
+            // Process the special discount product tax rate
+            $orderDiscountTaxAmount = bcmul($orderDiscount, $settings->vend_discountTaxRate, 5);
+            $orderDiscountWithoutTax = bcsub($orderDiscount, $orderDiscountTaxAmount, 5);
+
             $data['register_sale_products'][] = [
                 'product_id' => $settings->vend_discountProductId,
                 'quantity' => -1,
-                'price' => $orderDiscount,
+                'price' => $orderDiscountWithoutTax,
                 'price_set' => 1,
-                'tax' => 0,
-                'tax_id' => $settings->vend_noTaxId
+                'tax' => $orderDiscountTaxAmount,
+                'tax_id' => $settings->vend_discountTaxId
             ];
         }
 

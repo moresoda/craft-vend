@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.6 - 2021-03-11
+
+### Fixed
+- Fixed an issue where order level discounts weren’t showing the tax inside them
+
 ## 2.5.5 - 2021-01-05
 
 ### Fixed
