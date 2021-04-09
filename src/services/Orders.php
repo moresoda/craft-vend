@@ -19,6 +19,7 @@ use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\helpers\Json;
+use DateTimeInterface;
 use Exception;
 use Throwable;
 use yii\base\InvalidConfigException;
@@ -203,12 +204,12 @@ class Orders extends Component
             'customer_id' => $vendCustomerId,
             'user_id' => $settings->vend_userId,
             'status' => 'CLOSED',
-            'sale_date' => $order->dateOrdered->format('Y-m-d H:i:s'),
+            'sale_date' => $order->dateOrdered->format(DateTimeInterface::RFC3339),
             'register_sale_products' => [],
             'register_sale_payments' => [
                 [
                     'retailer_payment_type_id' => $settings->vend_retailerPaymentTypeId,
-                    'payment_date' => $order->dateOrdered->format('Y-m-d H:i:s'),
+                    'payment_date' => $order->dateOrdered->format(DateTimeInterface::RFC3339),
                     'amount' => $order->getTotalPaid()
                 ]
             ]
