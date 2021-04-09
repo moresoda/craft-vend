@@ -7,10 +7,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+
+## 2.5.7 - 2021-04-09
+
+### Fixed
+- Fixed an issue where order dates weren’t being sent to Vend with time zones. The format now conforms to RFC3339.
+
+
 ## 2.5.6 - 2021-03-11
 
 ### Fixed
 - Fixed an issue where order level discounts weren’t showing the tax inside them
+
 
 ## 2.5.5 - 2021-01-05
 
