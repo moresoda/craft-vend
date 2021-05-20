@@ -13,6 +13,7 @@ namespace angellco\vend\controllers;
 use angellco\vend\models\Settings;
 use angellco\vend\Vend;
 use Craft;
+use craft\commerce\elements\Product;
 use craft\db\Paginator;
 use craft\elements\Entry;
 use craft\helpers\DateTimeHelper;
@@ -241,9 +242,16 @@ class ProductsController extends Controller
                 }
             }
 
+            // Get the current product if there is one
+            $productQuery = Product::find();
+            $productQuery->status = null;
+            $productQuery->vendProductId = $rawProduct->vendProductId;
+            $commerceProduct = $productQuery->one();
+
             $products[] = [
                 'id' => $rawProduct->vendProductId,
                 'name' => $rawProduct->title,
+                'enabled' => $commerceProduct ? $commerceProduct->enabled : false,
                 'variants' => $variants
             ];
         }

@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.5.9 - 2021-05-20
+
+### Changed
+- Added the enabled status of the current product to the Feed Me API if the product already exists.
+
+
 ## 2.5.8 - 2021-05-20
 
 ### Fixed
