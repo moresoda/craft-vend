@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.5.8 - 2021-05-20
+
+### Fixed
+- Fixed an issue where Feed Me stopped working with Commerce products that had unlimited stock set to null - now the API that Feed Me uses returns 0 or 1 as strings which seem to work.
+
+
 ## 2.5.7 - 2021-04-09
 
 ### Fixed
