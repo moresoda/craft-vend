@@ -19,6 +19,7 @@ use craft\commerce\elements\Variant;
 use craft\commerce\models\LineItem;
 use craft\commerce\Plugin as CommercePlugin;
 use craft\helpers\Json;
+use craft\helpers\StringHelper;
 use DateTimeInterface;
 use Exception;
 use Throwable;
@@ -235,15 +236,24 @@ class Orders extends Component
             // Get the item price without tax
             $itemPriceWithoutTax = bcsub($lineItem->salePrice, $taxAmount, 5);
 
+            // We have to use the adjustments instead of $lineItem->getDiscount() because tax removal
+            // comes in as a discount on the line item.
+            $lineItemDiscount = 0;
+            foreach ($lineItem->getAdjustments() as $adjustment) {
+                if ($adjustment->type === 'discount' && !StringHelper::contains($adjustment->name, 'Removed')) {
+                    $lineItemDiscount += $adjustment->amount;
+                }
+            }
+
             // Re-calculate price if line item discount is present - tax has already been taken into account but salePrice
             // still shows the pre-discounted price per item so we have to fiddle
             $perItemDiscount = null;
-            if ($lineItem->getDiscount()) {
+            if ($lineItemDiscount) {
                 // Get the per item discount amount - this will be negative, because getDiscount() returns a negative number
-                $perItemDiscount = bcdiv($lineItem->getDiscount(), $lineItem->qty, 5);
+                $perItemDiscount = bcdiv($lineItemDiscount, $lineItem->qty, 5);
 
                 // Add it to our tracker, because its negative we just minus it here so we end up with a positive number
-                $totalLineItemsDiscount -= $lineItem->getDiscount();
+                $totalLineItemsDiscount -= $lineItemDiscount;
 
                 // We can get the discounted item price (with tax) by adding the discount to the sale price
                 $itemPriceWithTax = bcadd($lineItem->salePrice, $perItemDiscount, 5);
@@ -258,10 +268,10 @@ class Orders extends Component
                 'quantity' => $lineItem->qty,
                 // Unit price, tax exclusive
                 'price' => $itemPriceWithoutTax,
-                // The amount of tax in the unit price - this will be already discounted if need be
+                // The amount of tax in the unit price - this will be already discounted or zero if need be
                 'tax' => $taxAmount,
                 // The applicable Sales Tax ID
-                'tax_id' => $salesTaxId
+                'tax_id' => $lineItem->getTaxIncluded() ? $salesTaxId : $settings->vend_noTaxId
             ];
 
             // Add the discount for this line item if there is one
@@ -315,7 +325,17 @@ class Orders extends Component
         }
 
         // Process order level discount adjustments - this does not include line item discounts
-        $totalDiscount = abs($order->getTotalDiscount());
+        // We can’t use $order->getTotalDiscount() because it includes removed tax, instead we have to
+        // loop the order adjustments
+        $totalDiscount = 0;
+
+        foreach ($order->getAdjustmentsByType('discount') as $adjustment) {
+            if (!StringHelper::contains($adjustment->name, 'Removed')) {
+                $totalDiscount += $adjustment->amount;
+            }
+        }
+
+        $totalDiscount = abs($totalDiscount);
         $orderDiscount = $totalDiscount - $totalLineItemsDiscount;
         if ($orderDiscount > 0) {
 

@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## Unreleased
 
 
+## 2.5.10 - 2021-05-20
+
+### Changed
+- Changed how the tax gets dealt with when registering a sale with Vend, now it takes into account removed tax rules.
+
+
 ## 2.5.9 - 2021-05-20
 
 ### Changed
