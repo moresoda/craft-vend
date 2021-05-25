@@ -237,15 +237,25 @@ class Orders extends Component
             $itemPriceWithoutTax = bcsub($lineItem->salePrice, $taxAmount, 5);
 
             // We have to use the adjustments instead of $lineItem->getDiscount() because tax removal
-            // comes in as a discount on the line item.
+            // comes in as a discount on the line item and we need to track normal discounts and tax removal.
             $lineItemDiscount = 0;
+            $taxRemoved = 0;
             foreach ($lineItem->getAdjustments() as $adjustment) {
-                if ($adjustment->type === 'discount' && !StringHelper::contains($adjustment->name, 'Removed')) {
-                    $lineItemDiscount += $adjustment->amount;
+                if ($adjustment->type === 'discount') {
+                    if (StringHelper::contains($adjustment->name, 'Removed')) {
+                        // We minus it here because the amount will be negative and we want to end up with a positive number
+                        $taxRemoved -= $adjustment->amount;
+                    } else {
+                        $lineItemDiscount += $adjustment->amount;
+                    }
                 }
             }
 
-            // Re-calculate price if line item discount is present - tax has already been taken into account but salePrice
+            // If there was tax removed using adjusters, then we need to remove it from the line item afresh
+            $taxRemovedPerItem = bcdiv($taxRemoved, $lineItem->qty, 5);
+            $itemPriceWithoutTax = bcsub($itemPriceWithoutTax, $taxRemovedPerItem, 5);
+
+            // Re-calculate price if line item discount is present - tax may have already been taken into account but salePrice
             // still shows the pre-discounted price per item so we have to fiddle
             $perItemDiscount = null;
             if ($lineItemDiscount) {
