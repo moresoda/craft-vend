@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.11 - 2021-05-25
+
+### Fixed
+- Fixed an issue with line item prices not showing the sale price minus the removed tax when being sent to Vend.
+
 
 ## 2.5.10 - 2021-05-20
 
