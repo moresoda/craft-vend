@@ -251,10 +251,6 @@ class Orders extends Component
                 }
             }
 
-            // If there was tax removed using adjusters, then we need to remove it from the line item afresh
-            $taxRemovedPerItem = bcdiv($taxRemoved, $lineItem->qty, 5);
-            $itemPriceWithoutTax = bcsub($itemPriceWithoutTax, $taxRemovedPerItem, 5);
-
             // Re-calculate price if line item discount is present - tax may have already been taken into account but salePrice
             // still shows the pre-discounted price per item so we have to fiddle
             $perItemDiscount = null;
@@ -270,6 +266,12 @@ class Orders extends Component
 
                 // Now we can calculate the discounted item price without tax again, which is what Vend wants
                 $itemPriceWithoutTax = bcsub($itemPriceWithTax, $taxAmount, 5);
+            }
+
+            // If there was tax removed using adjusters, then we need to remove it from the line item afresh
+            if ($taxRemoved) {
+                $taxRemovedPerItem = bcdiv($taxRemoved, $lineItem->qty, 5);
+                $itemPriceWithoutTax = bcsub($itemPriceWithoutTax, $taxRemovedPerItem, 5);
             }
 
             // Prep the main product data array
