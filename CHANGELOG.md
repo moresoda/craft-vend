@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+## 2.5.12 - 2021-06-22
+
+### Fixed
+- Fixed an issue with line item prices showing the wrong value when they were sent to Vend and had tax removed with a line item discount on them as well.
+
 ## 2.5.11 - 2021-05-25
 
 ### Fixed
