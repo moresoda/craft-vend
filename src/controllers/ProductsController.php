@@ -433,8 +433,8 @@ class ProductsController extends Controller
             $formattedOptionValues[] = $option['value'];
         }
 
-        $formattedOptionNames = implode(',', $formattedOptionNames);
-        $formattedOptionValues = implode(',', $formattedOptionValues);
+        $formattedOptionNames = implode(', ', $formattedOptionNames);
+        $formattedOptionValues = implode(', ', $formattedOptionValues);
 
         return [
             'id' => $rawProduct->vendProductId,
