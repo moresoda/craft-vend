@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## Unreleased
 
+
+## 2.5.13 - 2021-10-07
+
+### Changed
+- Added a space between commas when formatting variant option names and values
+
+
 ## 2.5.12 - 2021-06-22
 
 ### Fixed
