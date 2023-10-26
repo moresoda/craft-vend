@@ -534,6 +534,12 @@ class Vend extends Plugin
             'categories' => ['angellco\vend\*'],
         ]);
 
+        // Custom logger
+        Craft::getLogger()->dispatcher->targets[] = new FileTarget([
+            'logFile' => Craft::getAlias('@storage/logs/vend-webhooks.log'),
+            'categories' => ['vend\webhooks\*'],
+        ]);
+
         // Log on load for debugging
         Craft::info(
             Craft::t(

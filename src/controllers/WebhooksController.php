@@ -10,10 +10,12 @@
 
 namespace angellco\vend\controllers;
 
+use angellco\vend\queue\jobs\ProductUpdate;
 use angellco\vend\Vend;
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\helpers\Json;
+use craft\helpers\Queue;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\ServiceUnavailableHttpException;
@@ -34,7 +36,7 @@ class WebhooksController extends Controller
 {
     // Properties
     // =========================================================================
-    protected $allowAnonymous = ['inventory'];
+    protected $allowAnonymous = ['inventory', 'product'];
 
     // Public Methods
     // =========================================================================
@@ -49,7 +51,7 @@ class WebhooksController extends Controller
      */
     public function beforeAction($action)
     {
-        if ($action->id === 'inventory') {
+        if ($action->id === 'inventory' || $action->id === 'product') {
             $this->enableCsrfValidation = false;
         }
 
@@ -125,8 +127,12 @@ class WebhooksController extends Controller
         $type = $request->getRequiredBodyParam('type');
 
         $url = false;
-        if ($type === 'inventory.update') {
-            $url = UrlHelper::actionUrl('vend/webhooks/inventory');
+        switch ($type) {
+            case 'inventory.update':
+                $url = UrlHelper::actionUrl('vend/webhooks/inventory');
+                break;
+            case 'product.update':
+                $url = UrlHelper::actionUrl('vend/webhooks/product');
         }
 
         if (!$url) {
@@ -234,6 +240,48 @@ class WebhooksController extends Controller
                 'success' => false
             ]);
         }
+
+        return $this->asJson([
+            'success' => true
+        ]);
+    }
+
+    /**
+     * Responds to the inventory.update webhook.
+     *
+     * @return Response
+     * @throws BadRequestHttpException
+     */
+    public function actionProduct(): Response
+    {
+        $this->requirePostRequest();
+
+        $type = $this->request->getParam('type');
+        $payload = Json::decode($this->request->getRequiredParam('payload'));
+
+        // Check it is the correct webhook and that we have the right data for the right outlet
+        if ($type !== 'product.update' || !isset($payload['id'], $payload['sku'])) {
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        // Use a cache reference to filter out duplicates
+        $cache = Craft::$app->getCache();
+        $cache_key = md5($payload['id'] . $payload['sku']);
+
+        if ($cache->exists($cache_key)) {
+            return $this->asJson([
+                'success' => false
+            ]);
+        }
+
+        $cache->set($cache_key, $payload['id'], 30);
+
+        Craft::info($payload['id'], 'vend\webhooks\product');
+
+        // Dispatch job to process product update
+        Queue::push(new ProductUpdate(['product_id' => $payload['id']]));
 
         return $this->asJson([
             'success' => true
