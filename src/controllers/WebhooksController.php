@@ -10,10 +10,11 @@
 
 namespace angellco\vend\controllers;
 
-use angellco\vend\queue\jobs\ProductUpdate;
+use angellco\vend\queue\jobs\UpdateProduct;
 use angellco\vend\Vend;
 use Craft;
 use craft\errors\MissingComponentException;
+use craft\helpers\ArrayHelper;
 use craft\helpers\Json;
 use craft\helpers\Queue;
 use craft\helpers\UrlHelper;
@@ -51,7 +52,7 @@ class WebhooksController extends Controller
      */
     public function beforeAction($action)
     {
-        if ($action->id === 'inventory' || $action->id === 'product') {
+        if (ArrayHelper::isIn($action->id, ['inventory', 'product'])) {
             $this->enableCsrfValidation = false;
         }
 
@@ -256,32 +257,34 @@ class WebhooksController extends Controller
     {
         $this->requirePostRequest();
 
+        $webhookId = $this->request->getHeaders()->get('x-vend-webhook-id');
+
         $type = $this->request->getParam('type');
         $payload = Json::decode($this->request->getRequiredParam('payload'));
 
+        $isWrongWebhookType = $type !== 'product.update';
+        $hasNoProductId = !isset($payload['id']);
+        $isProductVariant = isset($payload['variant_parent_id']);
+
         // Check it is the correct webhook and that we have the right data for the right outlet
-        if ($type !== 'product.update' || !isset($payload['id'], $payload['sku'])) {
+        if ($isWrongWebhookType || $hasNoProductId || $isProductVariant) {
+            // Send success message to Vend and silently drop webhook
             return $this->asJson([
                 'success' => false
             ]);
         }
 
-        // Use a cache reference to filter out duplicates
-        $cache = Craft::$app->getCache();
-        $cache_key = md5($payload['id'] . $payload['sku']);
+        $productId = $payload['id'];
 
-        if ($cache->exists($cache_key)) {
-            return $this->asJson([
-                'success' => false
-            ]);
+        // Acquire mutex lock to ensure we only queue single job
+        if (Craft::$app->getMutex()->acquire(md5("product_id:$productId;webhook_id:$webhookId;"))) {
+            // Log Product ID and Webhook ID
+            Craft::info("product_id:$productId;webhook_id:$webhookId;", 'vend\webhooks\product');
+            Craft::debug($payload, 'vend\webhooks\product');
+
+            // Dispatch job to process product update
+            Queue::push(new UpdateProduct(['product_id' => $productId]));
         }
-
-        $cache->set($cache_key, $payload['id'], 30);
-
-        Craft::info($payload['id'], 'vend\webhooks\product');
-
-        // Dispatch job to process product update
-        Queue::push(new ProductUpdate(['product_id' => $payload['id']]));
 
         return $this->asJson([
             'success' => true
