@@ -10,6 +10,7 @@
 
 namespace angellco\vend;
 
+use angellco\vend\elements\actions\SyncProductWithVendAction;
 use angellco\vend\models\Settings;
 use angellco\vend\oauth\providers\VendVenveo as VendProvider;
 use angellco\vend\queue\jobs\RegisterSale;
@@ -18,7 +19,7 @@ use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
 use angellco\vend\services\Products;
 use angellco\vend\services\ParkedSales;
-use angellco\vend\web\assets\orders\EditOrderAsset;
+use angellco\vend\web\assets\products\EditProductAsset;
 use angellco\vend\widgets\FastFeed;
 use angellco\vend\widgets\FullFeed;
 use Craft;
@@ -28,8 +29,12 @@ use craft\base\Field;
 use craft\base\Plugin;
 use craft\base\PreviewableFieldInterface;
 use craft\commerce\elements\Order;
+use craft\commerce\elements\Product;
 use craft\commerce\elements\Variant;
+use craft\commerce\events\LineItemEvent;
+use craft\commerce\models\LineItem;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterElementActionsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
 use craft\feedme\events\FeedProcessEvent;
@@ -38,6 +43,7 @@ use craft\feedme\Plugin as FeedMe;
 use craft\feedme\queue\jobs\FeedImport;
 use craft\feedme\services\Process;
 use craft\helpers\Json;
+use craft\helpers\Queue;
 use craft\helpers\StringHelper;
 use craft\helpers\UrlHelper;
 use craft\log\FileTarget;
@@ -253,19 +259,15 @@ class Vend extends Plugin
             );
         }
 
-        // Bind to the order complete event so we can register the sale with Vend
+        // Bind to the order complete event, so we can register the sale with Vend
         if ($this->getSettings()->vend_registerSales) {
             Event::on(
                 Order::class,
                 Order::EVENT_AFTER_COMPLETE_ORDER,
-                static function(Event $e) {
+                function(Event $event) {
                     /** @var Order $order */
-                    $order = $e->sender;
-                    $queue = Craft::$app->getQueue();
-                    $queue->delay(30)->push(new RegisterSale([
-                        'orderId' => $order->id
-                    ]));
-                    $queue->run();
+                    $order = $event->sender;
+                    Queue::push(new RegisterSale(['orderId' => $order->id]));
                 }
             );
         }
@@ -293,6 +295,17 @@ class Vend extends Plugin
                             $this->products->updateInventoryForVariant($compositeParentProductId, $stock);
                         }
                     }
+                }
+            }
+        );
+
+        // Register sync action for Products
+        Event::on(
+            Product::class,
+            Element::EVENT_REGISTER_ACTIONS,
+            function(RegisterElementActionsEvent $event) {
+                if (Craft::$app->getUser()->checkPermission('vend:sync')) {
+                    $event->actions[] = SyncProductWithVendAction::class;
                 }
             }
         );
@@ -516,9 +529,21 @@ class Vend extends Plugin
             $order = $context['order'];
             if ($order->isCompleted) {
                 // TODO: check its a Vend order
-                $view->registerAssetBundle(EditOrderAsset::class);
+                $view->registerAssetBundle(EditProductAsset::class);
                 $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
             }
+
+        });
+
+        // Load up our order edit stuff
+        $view->hook('cp.commerce.product.edit.content', static function(array &$context) use($view) {
+            /** @var Product $product */
+            $product = $context['product'];
+
+            $domainPrefix = Vend::$plugin->getSettings()->domainPrefix;
+
+            $view->registerAssetBundle(EditProductAsset::class);
+            $view->registerJs('new Craft.Vend.ProductEdit({domainPrefix:"'.$domainPrefix.'",vendProductId:"'.$product->vendProductId.'"});');
 
         });
     }
@@ -532,6 +557,13 @@ class Vend extends Plugin
         Craft::getLogger()->dispatcher->targets[] = new FileTarget([
             'logFile' => Craft::getAlias('@storage/logs/vend.log'),
             'categories' => ['angellco\vend\*'],
+        ]);
+
+        // Custom logger
+        Craft::getLogger()->dispatcher->targets[] = new FileTarget([
+            'logFile' => Craft::getAlias('@storage/logs/vend-webhooks.log'),
+            'categories' => ['vend\webhooks\*'],
+            'logVars' => [],
         ]);
 
         // Log on load for debugging
