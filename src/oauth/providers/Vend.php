@@ -146,7 +146,7 @@ class Vend extends AbstractProvider
     protected function checkResponse(ResponseInterface $response, $data)
     {
         if (!empty($data['error'])) {
-            throw new IdentityProviderException($data['error'].'. Details: '.$data['details'], $response->getStatusCode(), $response);
+            throw new IdentityProviderException($data['error'], $response->getStatusCode(), $response);
         }
     }
 
