@@ -139,7 +139,13 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
             $variant->stock = $inventory['current_amount'];
             $variant->price = $data['price_standard']['tax_inclusive'];
             $variant->setFieldValue('vendProductId', $id);
-            $variant->setFieldValue('vendProductSupplierName', $data['suppliers'][0]['code'] ?? '');
+
+            if (count($data['suppliers']) === 1) {
+                $variant->setFieldValue(
+                    'vendProductSupplierName',
+                    $this->getSupplierName($data['suppliers'][0]['id'])
+                );
+            }
 
             $product->setVariants([$variant]);
 
@@ -161,7 +167,13 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
             $product->defaultVariant->sku = $data['sku_number'];
             $product->defaultVariant->stock = $inventory['current_amount'];
             $product->defaultVariant->price = $data['price_standard']['tax_inclusive'];
-            $product->defaultVariant->setFieldValue('vendProductSupplierName', $data['suppliers'][0]['code'] ?? '');
+
+            if (count($data['suppliers']) === 1) {
+                $product->defaultVariant->setFieldValue(
+                    'vendProductSupplierName',
+                    $this->getSupplierName($data['suppliers'][0]['id'])
+                );
+            }
 
             try {
                 if (!Craft::$app->getElements()->saveElement($product)) {
@@ -210,7 +222,13 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
                     $variant->setFieldValue('vendProductVariantParentId', $id);
                 }
 
-                $variant->setFieldValue('vendProductSupplierName', $this->getSupplierName($data['suppliers'][0]['id']));
+                if (count($data['suppliers']) === 1) {
+                    $variant->setFieldValue(
+                        'vendProductSupplierName',
+                        $this->getSupplierName($data['suppliers'][0]['id'])
+                    );
+                }
+
                 $variant->setFieldValue('vendProductVariantLabel', $this->getVariantLabel($data['variants'][$i]['variant_definitions']));
 
                 $variants[] = $variant;
@@ -251,7 +269,13 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
                     $variant->setFieldValue('vendProductVariantParentId', $id);
                 }
 
-                $variant->setFieldValue('vendProductSupplierName', $this->getSupplierName($data['suppliers'][0]['id']));
+                if (count($data['suppliers']) === 1) {
+                    $variant->setFieldValue(
+                        'vendProductSupplierName',
+                        $this->getSupplierName($data['suppliers'][0]['id'])
+                    );
+                }
+
                 $variant->setFieldValue('vendProductVariantLabel', $this->getVariantLabel($data['variants'][$i]['variant_definitions']));
 
                 $variants[] = $variant;
