@@ -14,8 +14,9 @@ use DateTime;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Throwable;
 use yii\base\Exception;
+use yii\queue\RetryableJobInterface;
 
-final class UpdateProduct extends BaseJob
+final class UpdateProduct extends BaseJob implements RetryableJobInterface
 {
     const PRODUCT_TYPES = [
         // General
@@ -93,6 +94,16 @@ final class UpdateProduct extends BaseJob
     protected function defaultDescription(): string
     {
         return Craft::t('vend', 'Updating product');
+    }
+
+    public function getTtr()
+    {
+        return 5 * 60; // 5min
+    }
+
+    public function canRetry($attempt, $error)
+    {
+        return false;
     }
 
     public function execute($queue): void

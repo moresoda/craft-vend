@@ -19,6 +19,7 @@ use angellco\vend\services\ImportProfiles;
 use angellco\vend\services\Orders;
 use angellco\vend\services\Products;
 use angellco\vend\services\ParkedSales;
+use angellco\vend\web\assets\orders\EditOrderAsset;
 use angellco\vend\web\assets\products\EditProductAsset;
 use angellco\vend\widgets\FastFeed;
 use angellco\vend\widgets\FullFeed;
@@ -264,10 +265,14 @@ class Vend extends Plugin
             Event::on(
                 Order::class,
                 Order::EVENT_AFTER_COMPLETE_ORDER,
-                function(Event $event) {
+                static function(Event $event) {
                     /** @var Order $order */
                     $order = $event->sender;
-                    Queue::push(new RegisterSale(['orderId' => $order->id]));
+                    $queue = Craft::$app->getQueue();
+                    $queue->delay(30)->push(new RegisterSale([
+                        'orderId' => $order->id
+                    ]));
+                    $queue->run();
                 }
             );
         }
@@ -529,7 +534,7 @@ class Vend extends Plugin
             $order = $context['order'];
             if ($order->isCompleted) {
                 // TODO: check its a Vend order
-                $view->registerAssetBundle(EditProductAsset::class);
+                $view->registerAssetBundle(EditOrderAsset::class);
                 $view->registerJs('new Craft.Vend.OrderEdit({commerceOrderId:"'.$order->id.'",vendOrderId:"'.$order->vendOrderId.'"});');
             }
 
