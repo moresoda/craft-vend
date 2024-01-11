@@ -2,6 +2,7 @@
 
 namespace angellco\vend\queue\jobs;
 
+use angellco\vend\errors\ProductUpdatesLockedException;
 use angellco\vend\services\Api;
 use angellco\vend\Vend;
 use Craft;
@@ -103,7 +104,7 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
 
     public function canRetry($attempt, $error)
     {
-        return false;
+        return ($attempt < 5) && ($error instanceof ProductUpdatesLockedException);
     }
 
     public function execute($queue): void
@@ -111,6 +112,10 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
         $this->api = Vend::$plugin->api;
 
         $product_data = $this->getProduct($this->product_id);
+
+        if (!Craft::$app->getMutex()->acquire(md5($this->product_id . $product_data['sku_number']))) {
+            throw new ProductUpdatesLockedException();
+        }
 
         if (count($product_data['variants']) === 0) {
             $this->processSimpleProduct($this->product_id, $product_data);
