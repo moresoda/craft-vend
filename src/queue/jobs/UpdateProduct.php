@@ -234,7 +234,13 @@ final class UpdateProduct extends BaseJob implements RetryableJobInterface
                     );
                 }
 
-                $variant->setFieldValue('vendProductVariantLabel', $this->getVariantLabel($data['variants'][$i]['variant_definitions']));
+                $variantLabel = $this->getVariantLabel($data['variants'][$i]['variant_definitions']);
+                $variant->setFieldValue('vendProductVariantLabel', $variantLabel);
+
+                $numberOfVariantDefinitions = count($data['variants'][$i]['variant_definitions']);
+                if ($numberOfVariantDefinitions > 1) {
+                    $variant->title = $this->getVariantTitle(json_decode($variantLabel));
+                }
 
                 $variants[] = $variant;
             }
