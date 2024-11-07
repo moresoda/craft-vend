@@ -355,8 +355,8 @@ class Vend extends Plugin
                                 if ($vendOrderId) {
                                     $isVendOrder = true;
                                 } else {
-                                    $firstLineItem = $order->getLineItems()[0];
-                                    if (is_a($firstLineItem->getPurchasable(), Variant::class)) {
+                                    $firstLineItem = isset($order->getLineItems()[0]) ? $order->getLineItems()[0] : null;
+                                    if ($firstLineItem && is_a($firstLineItem->getPurchasable(), Variant::class)) {
                                         $isVendOrder = true;
                                     }
                                 }
